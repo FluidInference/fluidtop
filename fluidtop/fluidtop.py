@@ -47,16 +47,14 @@ class PowerChart(PlotextPlot):
         self.data_points = deque(maxlen=3600)
         self.timestamps = deque(maxlen=3600)
         self.start_time = time.time()
-        self.axes_color = self.plot_color
-        self.canvas_color = self.plot_color
         
     def on_mount(self):
         self.plt.title(self.title)
         self.plt.xlabel("Time (minutes ago)")
         self.plt.ylabel("Power (%)")
-        self.plt.axes_color(self.axes_color)
-        self.plt.canvas_color(self.canvas_color)
-        self.auto_theme = True
+        # Apply custom colors before setting auto_theme
+        # Set auto_theme to False to prevent overriding custom colors
+        self.auto_theme = False
         self.plt.plotsize(None, None)  # Auto-size
     
     def add_data(self, value: float):
@@ -113,7 +111,9 @@ class UsageChart(PlotextPlot):
         self.plt.xlabel("Time (minutes ago)")
         self.plt.ylabel(self.ylabel)
         self.plt.ylim(0, 100)
-        self.auto_theme = True
+        # Apply custom colors before setting auto_theme
+        # Set auto_theme to False to prevent overriding custom colors
+        self.auto_theme = False
         self.plt.plotsize(None, None)  # Auto-size
     
     def add_data(self, value: float):
@@ -185,21 +185,21 @@ class FluidTopApp(App):
         # SoC info
         self.soc_info_dict = get_soc_info()
         
-    def _get_theme_colors(self, theme: str) -> dict:
-        """Get the color mapping for the theme using shadcn-inspired colors"""
-        # Using hex colors inspired by shadcn design system
+    def _get_theme_colors(self, theme: str) -> str:
+        """Get the color mapping for the theme using plotext-compatible color names"""
+        # Using plotext-compatible color names instead of hex colors
         theme_chart_colors = {
-            'default': '#71717a',  # zinc-500
-            'dark': '#27272a',     # zinc-800
-            'blue': '#3b82f6',     # blue-500
-            'green': '#22c55e',    # green-500
-            'red': '#ef4444',      # red-500
-            'purple': '#a855f7',   # purple-500
-            'orange': '#FD8161',   # orange-500
-            'cyan': '#06b6d4',     # cyan-500
-            'magenta': '#ec4899'   # pink-500
+            'default': 'gray',
+            'dark': 'white', 
+            'blue': 'blue',
+            'green': 'green',
+            'red': 'red',
+            'purple': 'magenta', 
+            'orange': 'yellow',
+            'cyan': 'cyan',
+            'magenta': 'magenta'
         }
-        return theme_chart_colors.get(theme, '#5DAF8D')
+        return theme_chart_colors.get(theme, 'cyan')
         
     def _apply_theme(self, theme: str):
         """Apply color theme to the application"""

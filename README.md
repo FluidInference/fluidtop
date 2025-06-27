@@ -88,7 +88,11 @@ The original `asitop` project provided an excellent base for Apple Silicon monit
 
 ## Contributing
 
-We welcome contributions! Please see our [issues page](https://github.com/FluidInference/fluidtop/issues) for current development priorities.
+Issues:
+
+- Need to make the chart height adapt to the height of the terminal, the width is fine but height doesn't change
+- the color inside the plot isn't respecting the theme color
+
 
 ## License
 
