@@ -6,6 +6,10 @@ MacOS hardware performance monitoring CLI tool with a focus on AI Workloads
 
 A Python-based `nvtop`-inspired command line tool for Apple Silicon Macs (M1, M2, M3, M4+). This is an enhanced and actively maintained fork of the original [asitop](https://github.com/tlkh/asitop) project, with additional features and support for newer hardware. The original MIT license and commit history is preserved. 
 
+[View animated demo (GIF)](images/live.gif)
+
+[View static screenshot (PNG)](images/pic.png)
+
 ### Key Features
 
 * Easy install with `uv`
@@ -84,7 +88,11 @@ The original `asitop` project provided an excellent base for Apple Silicon monit
 
 ## Contributing
 
-We welcome contributions! Please see our [issues page](https://github.com/FluidInference/fluidtop/issues) for current development priorities.
+Issues:
+
+- Need to make the chart height adapt to the height of the terminal, the width is fine but height doesn't change
+- the color inside the plot isn't respecting the theme color
+
 
 ## License
 
