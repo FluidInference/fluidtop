@@ -153,6 +153,18 @@ twine upload dist/*
 - Bandwidth monitoring code exists but is disabled (commented out)
 - Modern packaging with pyproject.toml supports uv and other modern Python tools
 
+## Terminal Compatibility
+
+### Ghostty Terminal Support
+asitop includes optimized support for [Ghostty](https://ghostty.org/) terminal emulator:
+- **Automatic Detection**: Detects Ghostty through `TERM_PROGRAM` and `TERM` environment variables
+- **Terminal Compatibility**: Automatically maps `xterm-ghostty` to `xterm-256color` for library compatibility
+- **GPU Acceleration**: Leverages Ghostty's GPU acceleration for smoother terminal rendering
+- **Performance Optimization**: Takes advantage of Ghostty's fast rendering capabilities for real-time monitoring
+- **Enhanced Display**: Optimized for Ghostty's advanced terminal features and color support
+
+The application automatically detects when running in Ghostty, resolves terminal compatibility issues, and displays a confirmation message during startup.
+
 ## Troubleshooting
 
 ### Common Issues

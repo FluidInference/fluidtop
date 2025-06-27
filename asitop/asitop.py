@@ -1,5 +1,6 @@
 import time
 import argparse
+import os
 from collections import deque
 from dashing import VSplit, HSplit, HGauge, HChart, VGauge
 from .utils import *
@@ -19,8 +20,24 @@ parser.add_argument('--max_count', type=int, default=0,
 args = parser.parse_args()
 
 
+def detect_ghostty():
+    """Detect if running in Ghostty terminal and return optimized settings"""
+    term_program = os.environ.get('TERM_PROGRAM', '')
+    term = os.environ.get('TERM', '')
+    
+    if 'ghostty' in term_program.lower() or 'ghostty' in term.lower():
+        # Set compatible TERM for blessed/dashing compatibility
+        if term == 'xterm-ghostty':
+            os.environ['TERM'] = 'xterm-256color'
+        return True
+    return False
+
 def main():
+    is_ghostty = detect_ghostty()
+    
     print("\nASITOP - Performance monitoring CLI tool for Apple Silicon")
+    if is_ghostty:
+        print("Detected Ghostty terminal - optimized for GPU acceleration")
     print("You can update ASITOP by running `pip install asitop --upgrade`")
     print("Get help at `https://github.com/tlkh/asitop`")
     print("P.S. You are recommended to run ASITOP with `sudo asitop`\n")
