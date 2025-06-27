@@ -156,14 +156,15 @@ twine upload dist/*
 ## Terminal Compatibility
 
 ### Ghostty Terminal Support
-fluidtop includes optimized support for [Ghostty](https://ghostty.org/) terminal emulator:
-- **Automatic Detection**: Detects Ghostty through `TERM_PROGRAM` and `TERM` environment variables
-- **Terminal Compatibility**: Automatically maps `xterm-ghostty` to `xterm-256color` for library compatibility
-- **GPU Acceleration**: Leverages Ghostty's GPU acceleration for smoother terminal rendering
-- **Performance Optimization**: Takes advantage of Ghostty's fast rendering capabilities for real-time monitoring
-- **Enhanced Display**: Optimized for Ghostty's advanced terminal features and color support
+fluidtop includes enhanced support for [Ghostty](https://ghostty.org/) terminal emulator:
+- **Early Compatibility Detection**: Detects Ghostty before importing terminal libraries to prevent compatibility issues
+- **Automatic Terminal Mapping**: Maps `xterm-ghostty` and `ghostty` TERM values to `xterm-256color` for maximum compatibility
+- **True Color Support**: Automatically enables truecolor support for enhanced visual quality
+- **GPU Acceleration**: Leverages Ghostty's GPU acceleration for smoother real-time monitoring
+- **Standards Compliance**: Takes advantage of Ghostty's excellent standards compliance for reliable operation
+- **Cross-Platform**: Works across all platforms supported by Ghostty (macOS, Linux, Windows)
 
-The application automatically detects when running in Ghostty, resolves terminal compatibility issues, and displays a confirmation message during startup.
+The application automatically detects when running in Ghostty, applies compatibility fixes before library initialization, and displays a confirmation message during startup. This resolves the common `'xterm-ghostty': unknown terminal type` error that occurs with terminal UI libraries.
 
 ## Troubleshooting
 

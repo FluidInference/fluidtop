@@ -2,6 +2,36 @@ import time
 import argparse
 import os
 from collections import deque
+
+# Ghostty terminal compatibility fix - must be done before importing terminal libraries
+def setup_ghostty_compatibility():
+    """Setup Ghostty terminal compatibility before any terminal library imports"""
+    term_program = os.environ.get('TERM_PROGRAM', '')
+    term = os.environ.get('TERM', '')
+    
+    # Enhanced Ghostty detection
+    is_ghostty = (
+        'ghostty' in term_program.lower() or 
+        'ghostty' in term.lower() or
+        term == 'xterm-ghostty'
+    )
+    
+    if is_ghostty:
+        # Set compatible TERM for blessed/dashing compatibility
+        # Map all Ghostty TERM values to xterm-256color for maximum compatibility
+        if term in ['xterm-ghostty', 'ghostty']:
+            os.environ['TERM'] = 'xterm-256color'
+        
+        # Ensure color support is properly detected
+        if 'COLORTERM' not in os.environ:
+            os.environ['COLORTERM'] = 'truecolor'
+        
+        return True
+    return False
+
+# Apply Ghostty compatibility before importing dashing
+_is_ghostty = setup_ghostty_compatibility()
+
 from dashing import VSplit, HSplit, HGauge, HChart, VGauge
 from .utils import *
 
@@ -20,24 +50,12 @@ parser.add_argument('--max_count', type=int, default=0,
 args = parser.parse_args()
 
 
-def detect_ghostty():
-    """Detect if running in Ghostty terminal and return optimized settings"""
-    term_program = os.environ.get('TERM_PROGRAM', '')
-    term = os.environ.get('TERM', '')
-    
-    if 'ghostty' in term_program.lower() or 'ghostty' in term.lower():
-        # Set compatible TERM for blessed/dashing compatibility
-        if term == 'xterm-ghostty':
-            os.environ['TERM'] = 'xterm-256color'
-        return True
-    return False
-
 def main():
-    is_ghostty = detect_ghostty()
+    is_ghostty = _is_ghostty
     
     print("\nFLUIDTOP - Performance monitoring CLI tool for Apple Silicon")
     if is_ghostty:
-        print("Detected Ghostty terminal - optimized for GPU acceleration")
+        print("Detected Ghostty terminal - using enhanced compatibility mode")
     print("You can update FLUIDTOP by running `pip install fluid-top --upgrade`")
     print("Get help at `https://github.com/FluidInference/fluidtop`")
     print("P.S. You are recommended to run FLUIDTOP with `sudo fluidtop`\n")
