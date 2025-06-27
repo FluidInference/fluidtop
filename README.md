@@ -6,6 +6,10 @@ MacOS hardware performance monitoring CLI tool with a focus on AI Workloads
 
 A Python-based `nvtop`-inspired command line tool for Apple Silicon Macs (M1, M2, M3, M4+). This is an enhanced and actively maintained fork of the original [asitop](https://github.com/tlkh/asitop) project, with additional features and support for newer hardware. The original MIT license and commit history is preserved. 
 
+[View animated demo (GIF)](images/live.gif)
+
+[View static screenshot (PNG)](images/pic.png)
+
 ### Key Features
 
 * Easy install with `uv`
