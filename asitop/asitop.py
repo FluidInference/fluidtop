@@ -91,14 +91,17 @@ def main():
 
     cpu_power_chart = HChart(title="CPU Power", color=args.color)
     gpu_power_chart = HChart(title="GPU Power", color=args.color)
+    total_power_chart = HChart(title="Total Power", color=args.color)
     power_charts = VSplit(
         cpu_power_chart,
         gpu_power_chart,
+        total_power_chart,
         title="Power Chart",
         border_color=args.color,
     ) if args.show_cores else HSplit(
         cpu_power_chart,
         gpu_power_chart,
+        total_power_chart,
         title="Power Chart",
         border_color=args.color,
     )
@@ -398,6 +401,19 @@ def main():
                         "W)"
                     ])
                     gpu_power_chart.append(gpu_power_percent)
+
+                    total_max_power = cpu_max_power + gpu_max_power + ane_max_power
+                    total_power_percent = int(package_power_W / total_max_power * 100)
+                    total_power_chart.title = "".join([
+                        "Total: ",
+                        '{0:.2f}'.format(package_power_W),
+                        "W (avg: ",
+                        '{0:.2f}'.format(avg_package_power),
+                        "W peak: ",
+                        '{0:.2f}'.format(package_peak_power),
+                        "W)"
+                    ])
+                    total_power_chart.append(total_power_percent)
 
                     ui.display()
 
