@@ -25,6 +25,7 @@ setup(
     ),
     keywords='fluidtop fluid-top',
     install_requires=[
+        "click",
         "dashing",
         "psutil",
     ],

@@ -132,6 +132,7 @@ twine upload dist/*
 ## Key Technical Details
 
 ### Dependencies
+- **`click`**: Modern command-line interface creation toolkit (replaces argparse)
 - **`dashing`**: Terminal dashboard library for UI components
 - **`psutil`**: Cross-platform system monitoring (RAM/swap metrics)
 - **`powermetrics`**: macOS system utility (requires sudo)
@@ -144,6 +145,13 @@ twine upload dist/*
 - **Memory usage**: `psutil` virtual memory stats
 - **Core counts**: `sysctl hw.perflevel` queries
 - **SoC identification**: `sysctl machdep.cpu.brand_string`
+
+### CLI Implementation
+- **Command-line Interface**: Uses Click framework for modern CLI handling
+- **Options**: All command-line options use Click decorators (@click.option)
+- **Help System**: Automatic help generation with Click's built-in --help
+- **Parameter Validation**: Click handles type validation and error reporting
+- **Entry Point**: `fluidtop.fluidtop:main` decorated with @click.command()
 
 ### File Structure Notes
 - Entry point: `fluidtop.fluidtop:main` (defined in pyproject.toml and setup.py)

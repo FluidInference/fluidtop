@@ -1,5 +1,5 @@
 import time
-import argparse
+import click
 import os
 from collections import deque
 
@@ -35,22 +35,23 @@ _is_ghostty = setup_ghostty_compatibility()
 from dashing import VSplit, HSplit, HGauge, HChart, VGauge
 from .utils import *
 
-parser = argparse.ArgumentParser(
-    description='fluidtop: Performance monitoring CLI tool for Apple Silicon')
-parser.add_argument('--interval', type=int, default=1,
-                    help='Display interval and sampling interval for powermetrics (seconds)')
-parser.add_argument('--color', type=int, default=2,
-                    help='Choose display color (0~8)')
-parser.add_argument('--avg', type=int, default=30,
-                    help='Interval for averaged values (seconds)')
-parser.add_argument('--show_cores', action='store_true',
-                    help='Choose show cores mode')
-parser.add_argument('--max_count', type=int, default=0,
-                    help='Max show count to restart powermetrics')
-args = parser.parse_args()
+@click.command()
+@click.option('--interval', type=int, default=1,
+              help='Display interval and sampling interval for powermetrics (seconds)')
+@click.option('--color', type=int, default=2,
+              help='Choose display color (0~8)')
+@click.option('--avg', type=int, default=30,
+              help='Interval for averaged values (seconds)')
+@click.option('--show_cores', is_flag=True,
+              help='Choose show cores mode')
+@click.option('--max_count', type=int, default=0,
+              help='Max show count to restart powermetrics')
+def main(interval, color, avg, show_cores, max_count):
+    """fluidtop: Performance monitoring CLI tool for Apple Silicon"""
+    return _main_logic(interval, color, avg, show_cores, max_count)
 
 
-def main():
+def _main_logic(interval, color, avg, show_cores, max_count):
     is_ghostty = _is_ghostty
     
     print("\nFLUIDTOP - Performance monitoring CLI tool for Apple Silicon")
@@ -62,22 +63,22 @@ def main():
     print("\n[1/3] Loading FLUIDTOP\n")
     print("\033[?25l")
 
-    cpu1_gauge = HGauge(title="E-CPU Usage", val=0, color=args.color)
-    cpu2_gauge = HGauge(title="P-CPU Usage", val=0, color=args.color)
-    gpu_gauge = HGauge(title="GPU Usage", val=0, color=args.color)
-    ane_gauge = HGauge(title="ANE", val=0, color=args.color)
+    cpu1_gauge = HGauge(title="E-CPU Usage", val=0, color=color)
+    cpu2_gauge = HGauge(title="P-CPU Usage", val=0, color=color)
+    gpu_gauge = HGauge(title="GPU Usage", val=0, color=color)
+    ane_gauge = HGauge(title="ANE", val=0, color=color)
     gpu_ane_gauges = [gpu_gauge, ane_gauge]
 
     soc_info_dict = get_soc_info()
     e_core_count = soc_info_dict["e_core_count"]
-    e_core_gauges = [VGauge(val=0, color=args.color, border_color=args.color) for _ in range(e_core_count)]
+    e_core_gauges = [VGauge(val=0, color=color, border_color=color) for _ in range(e_core_count)]
     p_core_count = soc_info_dict["p_core_count"]
-    p_core_gauges = [VGauge(val=0, color=args.color, border_color=args.color) for _ in range(min(p_core_count, 8))]
+    p_core_gauges = [VGauge(val=0, color=color, border_color=color) for _ in range(min(p_core_count, 8))]
     p_core_split = [HSplit(
         *p_core_gauges,
     )]
     if p_core_count > 8:
-        p_core_gauges_ext = [VGauge(val=0, color=args.color, border_color=args.color) for _ in range(p_core_count - 8)]
+        p_core_gauges_ext = [VGauge(val=0, color=color, border_color=color) for _ in range(p_core_count - 8)]
         p_core_split.append(HSplit(
             *p_core_gauges_ext,
         ))
@@ -86,22 +87,22 @@ def main():
                         cpu2_gauge,
                         *p_core_split,
                         *gpu_ane_gauges
-                        ] if args.show_cores else [
+                        ] if show_cores else [
         HSplit(cpu1_gauge, cpu2_gauge),
         HSplit(*gpu_ane_gauges)
     ]
     processor_split = VSplit(
         *processor_gauges,
         title="Processor Utilization",
-        border_color=args.color,
+        border_color=color,
     )
 
-    ram_gauge = HGauge(title="RAM Usage", val=0, color=args.color)
+    ram_gauge = HGauge(title="RAM Usage", val=0, color=color)
     """
-    ecpu_bw_gauge = HGauge(title="E-CPU B/W", val=50, color=args.color)
-    pcpu_bw_gauge = HGauge(title="P-CPU B/W", val=50, color=args.color)
-    gpu_bw_gauge = HGauge(title="GPU B/W", val=50, color=args.color)
-    media_bw_gauge = HGauge(title="Media B/W", val=50, color=args.color)
+    ecpu_bw_gauge = HGauge(title="E-CPU B/W", val=50, color=color)
+    pcpu_bw_gauge = HGauge(title="P-CPU B/W", val=50, color=color)
+    gpu_bw_gauge = HGauge(title="GPU B/W", val=50, color=color)
+    media_bw_gauge = HGauge(title="Media B/W", val=50, color=color)
     bw_gauges = [HSplit(
         ecpu_bw_gauge,
         pcpu_bw_gauge,
@@ -109,7 +110,7 @@ def main():
         HSplit(
             gpu_bw_gauge,
             media_bw_gauge,
-        )] if args.show_cores else [
+        )] if show_cores else [
         HSplit(
             ecpu_bw_gauge,
             pcpu_bw_gauge,
@@ -120,25 +121,25 @@ def main():
     memory_gauges = VSplit(
         ram_gauge,
         #*bw_gauges,
-        border_color=args.color,
+        border_color=color,
         title="Memory"
     )
 
-    cpu_power_chart = HChart(title="CPU Power", color=args.color)
-    gpu_power_chart = HChart(title="GPU Power", color=args.color)
-    total_power_chart = HChart(title="Total Power", color=args.color)
+    cpu_power_chart = HChart(title="CPU Power", color=color)
+    gpu_power_chart = HChart(title="GPU Power", color=color)
+    total_power_chart = HChart(title="Total Power", color=color)
     power_charts = VSplit(
         cpu_power_chart,
         gpu_power_chart,
         total_power_chart,
         title="Power Chart",
-        border_color=args.color,
-    ) if args.show_cores else HSplit(
+        border_color=color,
+    ) if show_cores else HSplit(
         cpu_power_chart,
         gpu_power_chart,
         total_power_chart,
         title="Power Chart",
-        border_color=args.color,
+        border_color=color,
     )
 
     ui = HSplit(
@@ -147,7 +148,7 @@ def main():
             memory_gauges,
             power_charts,
         )
-    ) if args.show_cores else VSplit(
+    ) if show_cores else VSplit(
         processor_split,
         memory_gauges,
         power_charts,
@@ -183,7 +184,7 @@ def main():
     timecode = str(int(time.time()))
 
     powermetrics_process = run_powermetrics_process(timecode,
-                                                    interval=args.interval * 1000)
+                                                    interval=interval * 1000)
 
     print("\n[3/3] Waiting for first reading...\n")
 
@@ -201,22 +202,22 @@ def main():
         avg = sum(inlist) / len(inlist)
         return avg
 
-    avg_package_power_list = deque([], maxlen=int(args.avg / args.interval))
-    avg_cpu_power_list = deque([], maxlen=int(args.avg / args.interval))
-    avg_gpu_power_list = deque([], maxlen=int(args.avg / args.interval))
+    avg_package_power_list = deque([], maxlen=int(avg / interval))
+    avg_cpu_power_list = deque([], maxlen=int(avg / interval))
+    avg_gpu_power_list = deque([], maxlen=int(avg / interval))
 
     clear_console()
 
     count=0
     try:
         while True:
-            if args.max_count > 0:
-                if count >= args.max_count:
+            if max_count > 0:
+                if count >= max_count:
                     count = 0
                     powermetrics_process.terminate()
                     timecode = str(int(time.time()))
                     powermetrics_process = run_powermetrics_process(
-                        timecode, interval=args.interval * 1000)
+                        timecode, interval=interval * 1000)
                 count += 1
             ready = parse_powermetrics(timecode=timecode)
             if ready:
@@ -248,7 +249,7 @@ def main():
                     ])
                     cpu2_gauge.value = cpu_metrics_dict["P-Cluster_active"]
 
-                    if args.show_cores:
+                    if show_cores:
                         core_count = 0
                         for i in cpu_metrics_dict["e_core"]:
                             e_core_gauges[core_count % 4].title = "".join([
@@ -279,13 +280,13 @@ def main():
                     gpu_gauge.value = gpu_metrics_dict["active"]
 
                     ane_util_percent = int(
-                        cpu_metrics_dict["ane_W"] / args.interval / ane_max_power * 100)
+                        cpu_metrics_dict["ane_W"] / interval / ane_max_power * 100)
                     ane_gauge.title = "".join([
                         "ANE Usage: ",
                         str(ane_util_percent),
                         "% @ ",
                         '{0:.1f}'.format(
-                            cpu_metrics_dict["ane_W"] / args.interval),
+                            cpu_metrics_dict["ane_W"] / interval),
                         " W"
                     ])
                     ane_gauge.value = ane_util_percent
@@ -319,11 +320,11 @@ def main():
 
                     ecpu_bw_percent = int(
                         (bandwidth_metrics["ECPU DCS RD"] + bandwidth_metrics[
-                            "ECPU DCS WR"]) / args.interval / max_cpu_bw * 100)
+                            "ECPU DCS WR"]) / interval / max_cpu_bw * 100)
                     ecpu_read_GB = bandwidth_metrics["ECPU DCS RD"] / \
-                                   args.interval
+                                   interval
                     ecpu_write_GB = bandwidth_metrics["ECPU DCS WR"] / \
-                                    args.interval
+                                    interval
                     ecpu_bw_gauge.title = "".join([
                         "E-CPU: ",
                         '{0:.1f}'.format(ecpu_read_GB + ecpu_write_GB),
@@ -333,11 +334,11 @@ def main():
 
                     pcpu_bw_percent = int(
                         (bandwidth_metrics["PCPU DCS RD"] + bandwidth_metrics[
-                            "PCPU DCS WR"]) / args.interval / max_cpu_bw * 100)
+                            "PCPU DCS WR"]) / interval / max_cpu_bw * 100)
                     pcpu_read_GB = bandwidth_metrics["PCPU DCS RD"] / \
-                                   args.interval
+                                   interval
                     pcpu_write_GB = bandwidth_metrics["PCPU DCS WR"] / \
-                                    args.interval
+                                    interval
                     pcpu_bw_gauge.title = "".join([
                         "P-CPU: ",
                         '{0:.1f}'.format(pcpu_read_GB + pcpu_write_GB),
@@ -357,35 +358,35 @@ def main():
                     gpu_bw_gauge.value = gpu_bw_percent
 
                     media_bw_percent = int(
-                        bandwidth_metrics["MEDIA DCS"] / args.interval / max_media_bw * 100)
+                        bandwidth_metrics["MEDIA DCS"] / interval / max_media_bw * 100)
                     media_bw_gauge.title = "".join([
                         "Media: ",
                         '{0:.1f}'.format(
-                            bandwidth_metrics["MEDIA DCS"] / args.interval),
+                            bandwidth_metrics["MEDIA DCS"] / interval),
                         "GB/s"
                     ])
                     media_bw_gauge.value = media_bw_percent
 
                     total_bw_GB = (
-                                          bandwidth_metrics["DCS RD"] + bandwidth_metrics["DCS WR"]) / args.interval
+                                          bandwidth_metrics["DCS RD"] + bandwidth_metrics["DCS WR"]) / interval
                     bw_gauges.title = "".join([
                         "Memory Bandwidth: ",
                         '{0:.2f}'.format(total_bw_GB),
                         " GB/s (R:",
                         '{0:.2f}'.format(
-                            bandwidth_metrics["DCS RD"] / args.interval),
+                            bandwidth_metrics["DCS RD"] / interval),
                         "/W:",
                         '{0:.2f}'.format(
-                            bandwidth_metrics["DCS WR"] / args.interval),
+                            bandwidth_metrics["DCS WR"] / interval),
                         " GB/s)"
                     ])
-                    if args.show_cores:
+                    if show_cores:
                         bw_gauges_ext = memory_gauges.items[2]
                         bw_gauges_ext.title = "Memory Bandwidth:"
                     """
 
                     package_power_W = cpu_metrics_dict["package_W"] / \
-                                      args.interval
+                                      interval
                     if package_power_W > package_peak_power:
                         package_peak_power = package_power_W
                     avg_package_power_list.append(package_power_W)
@@ -402,8 +403,8 @@ def main():
                     ])
 
                     cpu_power_percent = int(
-                        cpu_metrics_dict["cpu_W"] / args.interval / cpu_max_power * 100)
-                    cpu_power_W = cpu_metrics_dict["cpu_W"] / args.interval
+                        cpu_metrics_dict["cpu_W"] / interval / cpu_max_power * 100)
+                    cpu_power_W = cpu_metrics_dict["cpu_W"] / interval
                     if cpu_power_W > cpu_peak_power:
                         cpu_peak_power = cpu_power_W
                     avg_cpu_power_list.append(cpu_power_W)
@@ -420,8 +421,8 @@ def main():
                     cpu_power_chart.append(cpu_power_percent)
 
                     gpu_power_percent = int(
-                        cpu_metrics_dict["gpu_W"] / args.interval / gpu_max_power * 100)
-                    gpu_power_W = cpu_metrics_dict["gpu_W"] / args.interval
+                        cpu_metrics_dict["gpu_W"] / interval / gpu_max_power * 100)
+                    gpu_power_W = cpu_metrics_dict["gpu_W"] / interval
                     if gpu_power_W > gpu_peak_power:
                         gpu_peak_power = gpu_power_W
                     avg_gpu_power_list.append(gpu_power_W)
@@ -452,7 +453,7 @@ def main():
 
                     ui.display()
 
-            time.sleep(args.interval)
+            time.sleep(interval)
 
     except KeyboardInterrupt:
         print("Stopping...")

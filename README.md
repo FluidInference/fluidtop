@@ -4,28 +4,16 @@ MacOS hardware performance monitoring CLI tool with a focus on AI Workloads
 
 ## What is `fluidtop`
 
-A Python-based `nvtop`-inspired command line tool for Apple Silicon Macs (M1, M2, M3, M4+). This is an enhanced and actively maintained fork of the original [asitop](https://github.com/tlkh/asitop) project, with additional features and support for newer hardware.
+A Python-based `nvtop`-inspired command line tool for Apple Silicon Macs (M1, M2, M3, M4+). This is an enhanced and actively maintained fork of the original [asitop](https://github.com/tlkh/asitop) project, with additional features and support for newer hardware. The original MIT license and commit history is preserved. 
 
 ### Key Features
 
-* **Comprehensive Utilization Monitoring:**
-  * CPU (E-cluster and P-cluster), GPU performance metrics
-  * Real-time frequency and utilization tracking
-  * ANE (Apple Neural Engine) utilization monitoring
-* **Memory Information:**
-  * RAM and swap usage with detailed statistics
-  * Memory bandwidth monitoring (where available)
-* **Power Monitoring:**
-  * Detailed CPU and GPU power consumption
-  * Real-time power charts with peak and rolling averages
-  * Thermal throttling detection
-* **Enhanced Hardware Support:**
-  * Support for M1, M2, M3, and M4+ Apple Silicon chips
-  * Optimized for [Ghostty terminal](https://ghostty.org/) with GPU acceleration
-  * Individual core monitoring capabilities
-* **Future AI Workload Support:**
-  * Planned enhancements for monitoring AI model inference
-  * Specialized metrics for machine learning workloads on Apple Silicon
+* Easy install with `uv`
+* Monitors CPU, GPU, and ANE usage in real time
+* Shows RAM, swap, and (where available) memory bandwidth
+* Tracks CPU/GPU power and detects thermal throttling
+* Supports all Apple Silicon (M1–M4+), with Ghostty terminal optimization
+* Individual core monitoring and future AI workload metrics
 
 ## Installation and Usage
 
