@@ -170,10 +170,12 @@ class FluidTopApp(App):
         self.avg_package_power_list = deque([], maxlen=int(avg / interval))
         self.avg_cpu_power_list = deque([], maxlen=int(avg / interval))
         self.avg_gpu_power_list = deque([], maxlen=int(avg / interval))
+        self.avg_ane_power_list = deque([], maxlen=int(avg / interval))
         
         # Peak power tracking
         self.cpu_peak_power = 0
         self.gpu_peak_power = 0
+        self.ane_peak_power = 0
         self.package_peak_power = 0
         
         # Powermetrics process
@@ -227,7 +229,7 @@ class FluidTopApp(App):
     }}
     
     PowerChart {{
-        height: 20;
+        height: 1fr;
         margin: 0;
         border: solid {colors['primary']};
         background: $surface;
@@ -238,7 +240,7 @@ class FluidTopApp(App):
     }}
     
     UsageChart {{
-        height: 20;
+        height: 1fr;
         margin: 0;
         border: solid {colors['primary']};
         background: $surface;
@@ -251,12 +253,14 @@ class FluidTopApp(App):
     #usage-section {{
         border: solid {colors['primary']};
         padding: 0;
+        height: 2fr;
         background: $surface;
     }}
     
     #power-section {{
         border: solid {colors['primary']};
         padding: 0;
+        height: 1fr;
         background: $surface;
     }}
     
@@ -300,15 +304,19 @@ class FluidTopApp(App):
             yield Label("Device Info", id="usage-title")
             with Horizontal():
                 yield UsageChart("E-CPU Usage", interval=self.interval, color=self.theme_colors, id="e-cpu-usage-chart")
+                yield UsageChart("P-CPU Usage", interval=self.interval, color=self.theme_colors, id="p-cpu-usage-chart")
                 yield UsageChart("GPU Usage", interval=self.interval, color=self.theme_colors, id="gpu-usage-chart")
+            with Horizontal():
+                yield UsageChart("ANE Usage", ylabel="ANE (%)", interval=self.interval, color=self.theme_colors, id="ane-usage-chart")
                 yield UsageChart("RAM Usage", ylabel="RAM (%)", interval=self.interval, color=self.theme_colors, id="ram-usage-chart")
         
         # Power section
         with Vertical(id="power-section"):
-            yield Label("Power Charts", id="power-title")
+            yield Label("Component Power Charts", id="power-title")
             with Horizontal():
                 yield PowerChart("CPU Power", interval=self.interval, color=self.theme_colors, id="cpu-power-chart")
                 yield PowerChart("GPU Power", interval=self.interval, color=self.theme_colors, id="gpu-power-chart")
+                yield PowerChart("ANE Power", interval=self.interval, color=self.theme_colors, id="ane-power-chart")
                 yield PowerChart("Total Power", interval=self.interval, color=self.theme_colors, id="total-power-chart")
         
         # Controls section
@@ -393,6 +401,14 @@ class FluidTopApp(App):
         e_cpu_chart.update_title(e_cpu_title)
         e_cpu_chart.add_data(e_cpu_usage)
         
+        # Update P-CPU usage chart
+        p_cpu_chart = self.query_one("#p-cpu-usage-chart", UsageChart)
+        p_cpu_usage = cpu_metrics_dict['P-Cluster_active']
+        p_cpu_freq = cpu_metrics_dict['P-Cluster_freq_Mhz']
+        p_cpu_title = f"P-CPU: {p_cpu_usage}% @ {p_cpu_freq} MHz"
+        p_cpu_chart.update_title(p_cpu_title)
+        p_cpu_chart.add_data(p_cpu_usage)
+        
         # Update GPU usage chart
         gpu_chart = self.query_one("#gpu-usage-chart", UsageChart)
         gpu_usage = gpu_metrics_dict['active']
@@ -400,6 +416,15 @@ class FluidTopApp(App):
         gpu_title = f"GPU: {gpu_usage}% @ {gpu_freq} MHz"
         gpu_chart.update_title(gpu_title)
         gpu_chart.add_data(gpu_usage)
+        
+        # Update ANE usage chart (based on power consumption as proxy for utilization)
+        ane_chart = self.query_one("#ane-usage-chart", UsageChart)
+        ane_power_W = cpu_metrics_dict["ane_W"] / self.interval
+        ane_max_power = 8.0  # Max ANE power
+        ane_usage_percent = min((ane_power_W / ane_max_power) * 100, 100)  # Convert power to percentage, cap at 100%
+        ane_title = f"ANE: {ane_usage_percent:.1f}% ({ane_power_W:.2f}W)"
+        ane_chart.update_title(ane_title)
+        ane_chart.add_data(ane_usage_percent)
         
         # Update RAM usage chart with swap information
         ram_metrics_dict = get_ram_metrics_dict()
@@ -425,6 +450,7 @@ class FluidTopApp(App):
         package_power_W = cpu_metrics_dict["package_W"] / self.interval
         cpu_power_W = cpu_metrics_dict["cpu_W"] / self.interval
         gpu_power_W = cpu_metrics_dict["gpu_W"] / self.interval
+        ane_power_W = cpu_metrics_dict["ane_W"] / self.interval
         
         # Update peak tracking
         if package_power_W > self.package_peak_power:
@@ -433,15 +459,19 @@ class FluidTopApp(App):
             self.cpu_peak_power = cpu_power_W
         if gpu_power_W > self.gpu_peak_power:
             self.gpu_peak_power = gpu_power_W
+        if ane_power_W > self.ane_peak_power:
+            self.ane_peak_power = ane_power_W
         
         # Update averages
         self.avg_package_power_list.append(package_power_W)
         self.avg_cpu_power_list.append(cpu_power_W)
         self.avg_gpu_power_list.append(gpu_power_W)
+        self.avg_ane_power_list.append(ane_power_W)
         
         avg_package_power = sum(self.avg_package_power_list) / len(self.avg_package_power_list)
         avg_cpu_power = sum(self.avg_cpu_power_list) / len(self.avg_cpu_power_list)
         avg_gpu_power = sum(self.avg_gpu_power_list) / len(self.avg_gpu_power_list)
+        avg_ane_power = sum(self.avg_ane_power_list) / len(self.avg_ane_power_list)
         
         # Update charts
         cpu_power_chart = self.query_one("#cpu-power-chart", PowerChart)
@@ -455,6 +485,12 @@ class FluidTopApp(App):
         gpu_title = f"GPU: {gpu_power_W:.2f}W (avg: {avg_gpu_power:.2f}W peak: {self.gpu_peak_power:.2f}W)"
         gpu_power_chart.update_title(gpu_title)
         gpu_power_chart.add_data(gpu_power_percent)
+        
+        ane_power_chart = self.query_one("#ane-power-chart", PowerChart)
+        ane_power_percent = int(ane_power_W / ane_max_power * 100)
+        ane_title = f"ANE: {ane_power_W:.2f}W (avg: {avg_ane_power:.2f}W peak: {self.ane_peak_power:.2f}W)"
+        ane_power_chart.update_title(ane_title)
+        ane_power_chart.add_data(ane_power_percent)
         
         total_power_chart = self.query_one("#total-power-chart", PowerChart)
         total_max_power = cpu_max_power + gpu_max_power + ane_max_power
@@ -521,7 +557,7 @@ class FluidTopApp(App):
 @click.command()
 @click.option('--interval', type=int, default=1,
               help='Display interval and sampling interval for powermetrics (seconds)')
-@click.option('--theme', type=click.Choice(['default', 'dark', 'blue', 'green', 'red', 'purple', 'orange', 'cyan', 'magenta']), default='blue',
+@click.option('--theme', type=click.Choice(['default', 'dark', 'blue', 'green', 'red', 'purple', 'orange', 'cyan', 'magenta']), default='cyan',
               help='Choose color theme')
 @click.option('--avg', type=int, default=30,
               help='Interval for averaged values (seconds)')
