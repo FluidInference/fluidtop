@@ -12,7 +12,7 @@ fluidtop is a Python-based performance monitoring CLI tool for Apple Silicon Mac
 
 ### Core Components
 
-- **`fluidtop/fluidtop.py`**: Main application entry point with UI rendering using the `dashing` library
+- **`fluidtop/fluidtop.py`**: Main application entry point with UI rendering using the `textual` library
 - **`fluidtop/utils.py`**: System utilities for data collection and `powermetrics` process management
 - **`fluidtop/parsers.py`**: Data parsing functions for `powermetrics` output (plist format)
 - **`setup.py`**: Standard Python package configuration
@@ -21,7 +21,7 @@ fluidtop is a Python-based performance monitoring CLI tool for Apple Silicon Mac
 
 - **Data Collection Pipeline**: `powermetrics` subprocess → plist parsing → metric extraction → UI display
 - **Hardware Detection**: Dynamic SoC identification (M1, M1 Pro/Max/Ultra, M2) with hardcoded TDP/bandwidth values
-- **Real-time Display**: Terminal UI using `dashing` library with gauges and charts
+- **Real-time Display**: Terminal UI using `textual` library with gauges and charts
 - **Temporary File Management**: Uses `/tmp/fluidtop_powermetrics*` files for data exchange
 
 ### Hardware Support Matrix
@@ -133,7 +133,8 @@ twine upload dist/*
 
 ### Dependencies
 - **`click`**: Modern command-line interface creation toolkit (replaces argparse)
-- **`dashing`**: Terminal dashboard library for UI components
+- **`textual`**: Modern terminal UI framework with async support
+- **`textual-plotext`**: Plotting library for textual applications
 - **`psutil`**: Cross-platform system monitoring (RAM/swap metrics)
 - **`powermetrics`**: macOS system utility (requires sudo)
 - **`sysctl`**: CPU information queries
@@ -160,6 +161,13 @@ twine upload dist/*
 - Uses plist format for powermetrics data exchange
 - Bandwidth monitoring code exists but is disabled (commented out)
 - Modern packaging with pyproject.toml supports uv and other modern Python tools
+
+### UI Components
+- **MetricGauge**: Custom widget combining labels and progress bars for metrics display
+- **PowerChart**: Custom plotting widget for power consumption data using PlotextPlot
+- **UsageChart**: Custom plotting widget for usage percentage data (CPU, GPU, RAM)
+- **FluidTopApp**: Main Textual application class with async update loops
+- **Sections**: UI organized into processor, memory, usage charts, and power charts sections
 
 ## Terminal Compatibility
 

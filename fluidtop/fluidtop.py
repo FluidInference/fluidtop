@@ -2,11 +2,14 @@ import time
 import click
 import asyncio
 from collections import deque
+from typing import Optional
 
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical
-from textual.widgets import ProgressBar, Static, Label
+from textual.widgets import ProgressBar, Static, Label, Button
 from textual_plotext import PlotextPlot
+import os
+from datetime import datetime
 from .utils import run_powermetrics_process, parse_powermetrics, get_soc_info, get_ram_metrics_dict
 
 
@@ -23,7 +26,7 @@ class MetricGauge(Static):
         yield Label(self.title, id="gauge-title")
         yield ProgressBar(total=self.max_value, show_percentage=True, id="gauge-progress")
     
-    def update_value(self, value: int, title: str = None):
+    def update_value(self, value: int, title: Optional[str] = None):
         self._value = value
         if title:
             self.title = title
@@ -57,6 +60,34 @@ class PowerChart(PlotextPlot):
         self.refresh()
 
 
+class UsageChart(PlotextPlot):
+    """Custom chart widget for usage percentage data"""
+    
+    def __init__(self, title: str = "", ylabel: str = "Usage (%)", **kwargs):
+        super().__init__(**kwargs)
+        self.title = title
+        self.ylabel = ylabel
+        self.data_points = deque(maxlen=100)
+        
+    def on_mount(self):
+        self.plt.title(self.title)
+        self.plt.xlabel("Time")
+        self.plt.ylabel(self.ylabel)
+        self.plt.ylim(0, 100)
+    
+    def add_data(self, value: float):
+        self.data_points.append(value)
+        self.plt.clear_data()
+        if len(self.data_points) > 1:
+            self.plt.plot(list(range(len(self.data_points))), list(self.data_points))
+        self.refresh()
+    
+    def update_title(self, title: str):
+        self.title = title
+        self.plt.title(title)
+        self.refresh()
+
+
 class FluidTopApp(App):
     """Main FluidTop application using Textual"""
     
@@ -73,12 +104,13 @@ class FluidTopApp(App):
         border: solid $primary;
     }
     
-    #processor-section {
+    UsageChart {
+        height: 10;
+        margin: 1;
         border: solid $primary;
-        padding: 1;
     }
     
-    #memory-section {
+    #usage-section {
         border: solid $primary;
         padding: 1;
     }
@@ -86,6 +118,25 @@ class FluidTopApp(App):
     #power-section {
         border: solid $primary;
         padding: 1;
+    }
+    
+    #controls-section {
+        border: solid $accent;
+        padding: 1;
+        height: 7;
+    }
+    
+    #controls-buttons {
+        align: right;
+        content-align: right;
+    }
+    
+    Button {
+        margin: 0 1;
+        min-width: 12;
+        height: 3;
+        border: none;
+        text-align: center;
     }
     """
     
@@ -119,39 +170,18 @@ class FluidTopApp(App):
     def compose(self) -> ComposeResult:
         """Compose the UI layout"""
         
-        # Processor section
-        with Vertical(id="processor-section"):
-            yield Label("Processor Utilization", id="processor-title")
-            
+        # Usage Charts section
+        with Vertical(id="usage-section"):
+            yield Label("Device Info", id="usage-title")
             if self.show_cores:
-                # E-cores
-                with Horizontal():
-                    for i in range(self.soc_info_dict["e_core_count"]):
-                        yield MetricGauge(f"E-Core {i+1}", id=f"e-core-{i}")
-                
-                # P-cores
-                p_core_count = self.soc_info_dict["p_core_count"]
-                with Horizontal():
-                    for i in range(min(p_core_count, 8)):
-                        yield MetricGauge(f"P-Core {i+1}", id=f"p-core-{i}")
-                
-                if p_core_count > 8:
-                    with Horizontal():
-                        for i in range(8, p_core_count):
-                            yield MetricGauge(f"P-Core {i+1}", id=f"p-core-{i}")
+                yield UsageChart("E-CPU Usage", id="e-cpu-usage-chart")
+                yield UsageChart("GPU Usage", id="gpu-usage-chart")
+                yield UsageChart("RAM Usage", ylabel="RAM (%)", id="ram-usage-chart")
             else:
                 with Horizontal():
-                    yield MetricGauge("E-CPU Usage", id="e-cpu-gauge")
-                    yield MetricGauge("P-CPU Usage", id="p-cpu-gauge")
-            
-            with Horizontal():
-                yield MetricGauge("GPU Usage", id="gpu-gauge")
-                yield MetricGauge("ANE Usage", id="ane-gauge")
-        
-        # Memory section
-        with Vertical(id="memory-section"):
-            yield Label("Memory", id="memory-title")
-            yield MetricGauge("RAM Usage", id="ram-gauge")
+                    yield UsageChart("E-CPU Usage", id="e-cpu-usage-chart")
+                    yield UsageChart("GPU Usage", id="gpu-usage-chart")
+                    yield UsageChart("RAM Usage", ylabel="RAM (%)", id="ram-usage-chart")
         
         # Power section
         with Vertical(id="power-section"):
@@ -165,6 +195,13 @@ class FluidTopApp(App):
                     yield PowerChart("CPU Power", id="cpu-power-chart")
                     yield PowerChart("GPU Power", id="gpu-power-chart")
                     yield PowerChart("Total Power", id="total-power-chart")
+        
+        # Controls section
+        with Vertical(id="controls-section"):
+            yield Label("Controls", id="controls-title")
+            with Horizontal():
+                yield Button("📸 Screenshot", id="screenshot-btn", variant="primary")
+                yield Button("❌ Quit", id="quit-btn", variant="error")
     
     async def on_mount(self):
         """Initialize the application on mount"""
@@ -180,9 +217,9 @@ class FluidTopApp(App):
         # Start update timer
         self.set_interval(self.interval, self.update_metrics)
         
-        # Update processor title
+        # Update usage title with device info
         cpu_title = f"{self.soc_info_dict['name']} (cores: {self.soc_info_dict['e_core_count']}E+{self.soc_info_dict['p_core_count']}P+{self.soc_info_dict['gpu_core_count']}GPU)"
-        self.query_one("#processor-title", Label).update(cpu_title)
+        self.query_one("#usage-title", Label).update(cpu_title)
     
     async def wait_for_first_reading(self):
         """Wait for the first powermetrics reading"""
@@ -218,17 +255,10 @@ class FluidTopApp(App):
                 
             self.last_timestamp = timestamp
             
-            # Update CPU metrics
-            await self.update_cpu_metrics(cpu_metrics_dict)
+            # CPU, GPU, and ANE gauge widgets have been removed
             
-            # Update GPU metrics
-            await self.update_gpu_metrics(gpu_metrics_dict)
-            
-            # Update ANE metrics  
-            await self.update_ane_metrics(cpu_metrics_dict)
-            
-            # Update memory metrics
-            await self.update_memory_metrics()
+            # Update usage charts
+            await self.update_usage_charts(cpu_metrics_dict, gpu_metrics_dict)
             
             # Update power charts
             await self.update_power_charts(cpu_metrics_dict, thermal_pressure)
@@ -237,57 +267,39 @@ class FluidTopApp(App):
             # Handle errors gracefully
             pass
     
-    async def update_cpu_metrics(self, cpu_metrics_dict):
-        """Update CPU gauge metrics"""
-        if self.show_cores:
-            # Update individual E-cores
-            for i, core_idx in enumerate(cpu_metrics_dict["e_core"]):
-                gauge = self.query_one(f"#e-core-{i}", MetricGauge)
-                title = f"Core-{core_idx + 1} {cpu_metrics_dict[f'E-Cluster{core_idx}_active']}%"
-                gauge.update_value(cpu_metrics_dict[f"E-Cluster{core_idx}_active"], title)
-            
-            # Update individual P-cores
-            for i, core_idx in enumerate(cpu_metrics_dict["p_core"]):
-                gauge = self.query_one(f"#p-core-{i}", MetricGauge)
-                title = f"Core-{core_idx + 1} {cpu_metrics_dict[f'P-Cluster{core_idx}_active']}%"
-                gauge.update_value(cpu_metrics_dict[f"P-Cluster{core_idx}_active"], title)
-        else:
-            # Update cluster gauges
-            e_cpu_gauge = self.query_one("#e-cpu-gauge", MetricGauge)
-            title = f"E-CPU Usage: {cpu_metrics_dict['E-Cluster_active']}% @ {cpu_metrics_dict['E-Cluster_freq_Mhz']} MHz"
-            e_cpu_gauge.update_value(cpu_metrics_dict["E-Cluster_active"], title)
-            
-            p_cpu_gauge = self.query_one("#p-cpu-gauge", MetricGauge)
-            title = f"P-CPU Usage: {cpu_metrics_dict['P-Cluster_active']}% @ {cpu_metrics_dict['P-Cluster_freq_Mhz']} MHz"
-            p_cpu_gauge.update_value(cpu_metrics_dict["P-Cluster_active"], title)
+
     
-    async def update_gpu_metrics(self, gpu_metrics_dict):
-        """Update GPU gauge metrics"""
-        gpu_gauge = self.query_one("#gpu-gauge", MetricGauge)
-        title = f"GPU Usage: {gpu_metrics_dict['active']}% @ {gpu_metrics_dict['freq_MHz']} MHz"
-        gpu_gauge.update_value(gpu_metrics_dict["active"], title)
-    
-    async def update_ane_metrics(self, cpu_metrics_dict):
-        """Update ANE gauge metrics"""
-        ane_max_power = 8.0
-        ane_util_percent = int(cpu_metrics_dict["ane_W"] / self.interval / ane_max_power * 100)
-        ane_power = cpu_metrics_dict["ane_W"] / self.interval
+    async def update_usage_charts(self, cpu_metrics_dict, gpu_metrics_dict):
+        """Update usage chart metrics"""
+        # Update E-CPU usage chart
+        e_cpu_chart = self.query_one("#e-cpu-usage-chart", UsageChart)
+        e_cpu_usage = cpu_metrics_dict['E-Cluster_active']
+        e_cpu_freq = cpu_metrics_dict['E-Cluster_freq_Mhz']
+        e_cpu_title = f"E-CPU: {e_cpu_usage}% @ {e_cpu_freq} MHz"
+        e_cpu_chart.update_title(e_cpu_title)
+        e_cpu_chart.add_data(e_cpu_usage)
         
-        ane_gauge = self.query_one("#ane-gauge", MetricGauge)
-        title = f"ANE Usage: {ane_util_percent}% @ {ane_power:.1f} W"
-        ane_gauge.update_value(ane_util_percent, title)
-    
-    async def update_memory_metrics(self):
-        """Update memory gauge metrics"""
+        # Update GPU usage chart
+        gpu_chart = self.query_one("#gpu-usage-chart", UsageChart)
+        gpu_usage = gpu_metrics_dict['active']
+        gpu_freq = gpu_metrics_dict['freq_MHz']
+        gpu_title = f"GPU: {gpu_usage}% @ {gpu_freq} MHz"
+        gpu_chart.update_title(gpu_title)
+        gpu_chart.add_data(gpu_usage)
+        
+        # Update RAM usage chart with swap information
         ram_metrics_dict = get_ram_metrics_dict()
+        ram_chart = self.query_one("#ram-usage-chart", UsageChart)
+        ram_usage_percent = 100 - ram_metrics_dict["free_percent"]  # Convert from free to used percentage
         
+        # Include swap information in the title
         if ram_metrics_dict["swap_total_GB"] < 0.1:
-            title = f"RAM Usage: {ram_metrics_dict['used_GB']}/{ram_metrics_dict['total_GB']}GB - swap inactive"
+            ram_title = f"RAM: {ram_usage_percent:.1f}% ({ram_metrics_dict['used_GB']:.1f}/{ram_metrics_dict['total_GB']:.1f}GB) - swap inactive"
         else:
-            title = f"RAM Usage: {ram_metrics_dict['used_GB']}/{ram_metrics_dict['total_GB']}GB - swap:{ram_metrics_dict['swap_used_GB']}/{ram_metrics_dict['swap_total_GB']}GB"
+            ram_title = f"RAM: {ram_usage_percent:.1f}% ({ram_metrics_dict['used_GB']:.1f}/{ram_metrics_dict['total_GB']:.1f}GB) - swap: {ram_metrics_dict['swap_used_GB']:.1f}/{ram_metrics_dict['swap_total_GB']:.1f}GB"
         
-        ram_gauge = self.query_one("#ram-gauge", MetricGauge)
-        ram_gauge.update_value(ram_metrics_dict["free_percent"], title)
+        ram_chart.update_title(ram_title)
+        ram_chart.add_data(ram_usage_percent)
     
     async def update_power_charts(self, cpu_metrics_dict, thermal_pressure):
         """Update power chart metrics"""
@@ -341,6 +353,48 @@ class FluidTopApp(App):
         # Update power section title
         power_title = f"CPU+GPU+ANE Power: {package_power_W:.2f}W (avg: {avg_package_power:.2f}W peak: {self.package_peak_power:.2f}W) throttle: {thermal_throttle}"
         self.query_one("#power-title", Label).update(power_title)
+    
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Handle button press events"""
+        if event.button.id == "screenshot-btn":
+            await self.take_screenshot()
+        elif event.button.id == "quit-btn":
+            await self.quit_application()
+    
+    async def take_screenshot(self) -> None:
+        """Take a screenshot of the current display"""
+        try:
+            # Create screenshots directory if it doesn't exist
+            screenshots_dir = os.path.expanduser("~/fluidtop_screenshots")
+            os.makedirs(screenshots_dir, exist_ok=True)
+            
+            # Generate filename with timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            screenshot_path = os.path.join(screenshots_dir, f"fluidtop_{timestamp}.svg")
+            
+            # Save screenshot as SVG (textual's built-in screenshot format)
+            self.save_screenshot(screenshot_path)
+            
+            # Update controls title to show success
+            controls_title = self.query_one("#controls-title", Label)
+            original_text = "Controls"
+            controls_title.update(f"✅ Screenshot saved to {screenshot_path}")
+            
+            # Reset title after 3 seconds
+            self.set_timer(3.0, lambda: controls_title.update(original_text))
+            
+        except Exception as e:
+            # Update controls title to show error
+            controls_title = self.query_one("#controls-title", Label)
+            original_text = "Controls"
+            controls_title.update(f"❌ Screenshot failed: {str(e)}")
+            
+            # Reset title after 3 seconds
+            self.set_timer(3.0, lambda: controls_title.update(original_text))
+    
+    async def quit_application(self) -> None:
+        """Gracefully quit the application"""
+        self.exit()
     
     def on_unmount(self):
         """Clean up when app is closed"""
