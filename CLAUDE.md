@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-asitop is a Python-based performance monitoring CLI tool for Apple Silicon Macs, inspired by `nvtop`. It provides real-time monitoring of CPU, GPU, ANE (Apple Neural Engine), memory, and power consumption using macOS's built-in `powermetrics` utility.
+fluidtop is a Python-based performance monitoring CLI tool for Apple Silicon Macs, inspired by `nvtop`. It provides real-time monitoring of CPU, GPU, ANE (Apple Neural Engine), memory, and power consumption using macOS's built-in `powermetrics` utility.
 
 **Important**: This tool only works on Apple Silicon Macs and requires `sudo` privileges to access `powermetrics`.
 
@@ -12,9 +12,9 @@ asitop is a Python-based performance monitoring CLI tool for Apple Silicon Macs,
 
 ### Core Components
 
-- **`asitop/asitop.py`**: Main application entry point with UI rendering using the `dashing` library
-- **`asitop/utils.py`**: System utilities for data collection and `powermetrics` process management
-- **`asitop/parsers.py`**: Data parsing functions for `powermetrics` output (plist format)
+- **`fluidtop/fluidtop.py`**: Main application entry point with UI rendering using the `dashing` library
+- **`fluidtop/utils.py`**: System utilities for data collection and `powermetrics` process management
+- **`fluidtop/parsers.py`**: Data parsing functions for `powermetrics` output (plist format)
 - **`setup.py`**: Standard Python package configuration
 
 ### Key Architecture Patterns
@@ -22,7 +22,7 @@ asitop is a Python-based performance monitoring CLI tool for Apple Silicon Macs,
 - **Data Collection Pipeline**: `powermetrics` subprocess → plist parsing → metric extraction → UI display
 - **Hardware Detection**: Dynamic SoC identification (M1, M1 Pro/Max/Ultra, M2) with hardcoded TDP/bandwidth values
 - **Real-time Display**: Terminal UI using `dashing` library with gauges and charts
-- **Temporary File Management**: Uses `/tmp/asitop_powermetrics*` files for data exchange
+- **Temporary File Management**: Uses `/tmp/fluidtop_powermetrics*` files for data exchange
 
 ### Hardware Support Matrix
 
@@ -43,14 +43,14 @@ The application includes hardcoded specifications for different Apple Silicon va
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Quick start - no installation needed, just run:
-sudo uv run asitop
+sudo uv run fluidtop
 
 # For development work:
 # Install in development mode
 uv pip install -e .
 
 # Install from PyPI
-uv pip install asitop
+uv pip install fluid-top
 
 # Create and activate virtual environment (optional)
 uv venv
@@ -67,7 +67,7 @@ uv pip install -e .
 pip install -e .
 
 # Install from PyPI
-pip install asitop
+pip install fluid-top
 ```
 
 ### Running the Application
@@ -75,28 +75,28 @@ pip install asitop
 #### Using uv run (Recommended)
 ```bash
 # Run directly with uv (automatically handles dependencies)
-sudo uv run asitop
+sudo uv run fluidtop
 
 # Run with options
-sudo uv run asitop --interval 2 --color 5 --avg 60 --show_cores true
+sudo uv run fluidtop --interval 2 --color 5 --avg 60 --show_cores true
 
 # Alternative: run the module directly
-sudo uv run -m asitop.asitop
+sudo uv run -m fluidtop.fluidtop
 
 # Without sudo (will prompt for password during execution)
-uv run asitop
+uv run fluidtop
 ```
 
 #### Traditional method
 ```bash
 # Recommended usage (avoids password prompt during execution)
-sudo asitop
+sudo fluidtop
 
 # Alternative (will prompt for password)
-asitop
+fluidtop
 
 # With options
-asitop --interval 2 --color 5 --avg 60 --show_cores true
+fluidtop --interval 2 --color 5 --avg 60 --show_cores true
 ```
 
 ### Available Command Line Options
@@ -146,7 +146,7 @@ twine upload dist/*
 - **SoC identification**: `sysctl machdep.cpu.brand_string`
 
 ### File Structure Notes
-- Entry point: `asitop.asitop:main` (defined in pyproject.toml and setup.py)
+- Entry point: `fluidtop.fluidtop:main` (defined in pyproject.toml and setup.py)
 - No test suite present in codebase
 - Dependencies defined in both pyproject.toml and setup.py for compatibility
 - Uses plist format for powermetrics data exchange
@@ -156,7 +156,7 @@ twine upload dist/*
 ## Terminal Compatibility
 
 ### Ghostty Terminal Support
-asitop includes optimized support for [Ghostty](https://ghostty.org/) terminal emulator:
+fluidtop includes optimized support for [Ghostty](https://ghostty.org/) terminal emulator:
 - **Automatic Detection**: Detects Ghostty through `TERM_PROGRAM` and `TERM` environment variables
 - **Terminal Compatibility**: Automatically maps `xterm-ghostty` to `xterm-256color` for library compatibility
 - **GPU Acceleration**: Leverages Ghostty's GPU acceleration for smoother terminal rendering
@@ -168,12 +168,12 @@ The application automatically detects when running in Ghostty, resolves terminal
 ## Troubleshooting
 
 ### Common Issues
-- **Permission denied**: Run with `sudo asitop`
+- **Permission denied**: Run with `sudo fluidtop`
 - **Not compatible**: Only works on Apple Silicon Macs with macOS Monterey+
 - **Thermal throttling**: Displayed in power chart title when detected
 - **Incomplete data**: Application handles parsing errors gracefully with fallback logic
 
 ### Debug Information
-- Temporary files: `/tmp/asitop_powermetrics*`
+- Temporary files: `/tmp/fluidtop_powermetrics*`
 - Process management: Uses subprocess.Popen for powermetrics
 - Error handling: Try/except blocks for plist parsing with fallback to previous data

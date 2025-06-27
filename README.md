@@ -1,89 +1,107 @@
-# asitop
+# fluidtop
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/asitop)
+Performance monitoring CLI tool for Apple Silicon Macs with enhanced support for modern hardware and AI workload monitoring.
 
-Performance monitoring CLI tool for Apple Silicon
+## What is `fluidtop`
 
-![](images/asitop.png)
+A Python-based `nvtop`-inspired command line tool for Apple Silicon Macs (M1, M2, M3, M4+). This is an enhanced and actively maintained fork of the original [asitop](https://github.com/tlkh/asitop) project, with additional features and support for newer hardware.
 
-```shell
-pip install asitop
-```
+### Key Features
 
-## What is `asitop`
-
-A Python-based `nvtop`-inspired command line tool for Apple Silicon (aka M1) Macs.
-
-* Utilization info:
-  * CPU (E-cluster and P-cluster), GPU
-  * Frequency and utilization
-  * ANE utilization (measured by power)
-* Memory info:
-  * RAM and swap, size and usage
-  * (Apple removed memory bandwidth from `powermetrics`)
-* Power info:
-  * CPU power, GPU power (Apple removed package power from `powermetrics`)
-  * Chart for CPU/GPU power
-  * Peak power, rolling average display
-
-`asitop` uses the built-in [`powermetrics`](https://www.unix.com/man-page/osx/1/powermetrics/) utility on macOS, which allows access to a variety of hardware performance counters. Note that it requires `sudo` to run due to `powermetrics` needing root access to run. `asitop` is lightweight and has minimal performance impact.
-
-**`asitop` only works on Apple Silicon Macs on macOS Monterey!**
+* **Comprehensive Utilization Monitoring:**
+  * CPU (E-cluster and P-cluster), GPU performance metrics
+  * Real-time frequency and utilization tracking
+  * ANE (Apple Neural Engine) utilization monitoring
+* **Memory Information:**
+  * RAM and swap usage with detailed statistics
+  * Memory bandwidth monitoring (where available)
+* **Power Monitoring:**
+  * Detailed CPU and GPU power consumption
+  * Real-time power charts with peak and rolling averages
+  * Thermal throttling detection
+* **Enhanced Hardware Support:**
+  * Support for M1, M2, M3, and M4+ Apple Silicon chips
+  * Optimized for [Ghostty terminal](https://ghostty.org/) with GPU acceleration
+  * Individual core monitoring capabilities
+* **Future AI Workload Support:**
+  * Planned enhancements for monitoring AI model inference
+  * Specialized metrics for machine learning workloads on Apple Silicon
 
 ## Installation and Usage
 
-`asitop` is a Python-based command line tool. You need `pip` to download and install `asitop`. macOS already comes with Python, to install `pip`, you can follow an [online guide](https://phoenixnap.com/kb/install-pip-mac). After you install `asitop` via `pip`, you can use it via the Terminal.
+### Quick Start with uv (Recommended)
 
 ```shell
-# to enter password before start
-# this mode is recommended!
-sudo asitop
+# Install uv if not already installed
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# it will prompt password on start
-asitop
+# Run directly without installation
+sudo uv run fluidtop
 
-# advanced options
-asitop [-h] [--interval INTERVAL] [--color COLOR] [--avg AVG]
+# Run with options
+sudo uv run fluidtop --interval 2 --color 5 --avg 60 --show_cores true
+```
+
+
+### Command Line Options
+
+```shell
+fluidtop [-h] [--interval INTERVAL] [--color COLOR] [--avg AVG] [--show_cores] [--max_count MAX_COUNT]
+
 optional arguments:
   -h, --help           show this help message and exit
-  --interval INTERVAL  Display interval and sampling interval for powermetrics (seconds)
-  --color COLOR        Choose display color (0~8)
-  --avg AVG            Interval for averaged values (seconds)
+  --interval INTERVAL  Display and sampling interval for powermetrics (seconds, default: 1)
+  --color COLOR        Choose display color theme (0-8, default: 2)
+  --avg AVG            Averaging window for power values (seconds, default: 30)
+  --show_cores         Enable individual core monitoring display
+  --max_count          Restart powermetrics after N samples (for long-running sessions)
 ```
 
 ## How it works
 
-`powermetrics` is used to measure the following:
+`fluidtop` uses the built-in [`powermetrics`](https://www.unix.com/man-page/osx/1/powermetrics/) utility on macOS, which provides access to hardware performance counters. Root access is required due to `powermetrics` security requirements. The tool is lightweight with minimal performance impact.
 
-* CPU/GPU utilization via active residency
-* CPU/GPU frequency
-* Package/CPU/GPU/ANE energy consumption
-* CPU/GPU/Media Total memory bandwidth via the DCS (DRAM Command Scheduler)
+**System Requirements:** Apple Silicon Macs running macOS Monterey (12.0) or later.
 
-[`psutil`](https://github.com/giampaolo/psutil) is used to measure the following:
+### Data Sources
 
-* memory and swap usage
+* **CPU/GPU utilization:** `powermetrics` active residency measurements
+* **Power consumption:** Energy counters from `powermetrics`
+* **Memory usage:** [`psutil`](https://github.com/giampaolo/psutil) virtual memory statistics
+* **System information:** `sysctl` for CPU details, `system_profiler` for GPU specs
+* **Hardware specifications:** Built-in database with TDP and bandwidth specs for all Apple Silicon variants
 
-[`sysctl`](https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man3/sysctl.3.html) is used to measure the following:
+## Attribution and Development
 
-* CPU name
-* CPU core counts
+This project is a fork and continuation of the original [asitop](https://github.com/tlkh/asitop) by Timothy Liu, which appears to be no longer actively maintained. We extend our gratitude to the original author for creating this excellent foundation.
 
-[`system_profiler`](https://ss64.com/osx/system_profiler.html) is used to measure the following:
+### Why fluidtop?
 
-* GPU core count
+The original `asitop` project provided an excellent base for Apple Silicon monitoring, but lacked support for:
+- Newer Apple Silicon chips (M3, M4+)
+- Modern terminal emulators like Ghostty
+- Enhanced monitoring capabilities for AI/ML workloads
 
-Some information is guesstimate and hardcoded as there doesn't seem to be a official source for it on the system:
+`fluidtop` addresses these gaps while maintaining full compatibility with the original tool's functionality.
 
-* CPU/GPU TDP
-* CPU/GPU maximum memory bandwidth
-* ANE max power
-* Media engine max bandwidth
+### Roadmap
 
-## Why
+- ✅ Enhanced hardware support (M1-M4+)
+- ✅ Ghostty terminal optimization
+- ✅ Improved user experience and documentation
+- 🔄 Advanced AI workload monitoring
+- 🔄 Custom monitoring profiles for different use cases
+- 🔄 Export capabilities for performance data
+- 🔄 Integration with popular ML frameworks
 
-Because I didn't find something like this online. Also, just curious about stuff.
+## Contributing
 
-## Disclaimers
+We welcome contributions! Please see our [issues page](https://github.com/FluidInference/fluidtop/issues) for current development priorities.
 
-I did this randomly don't blame me if it fried your new MacBook or something.
+## License
+
+MIT License - same as the original asitop project.
+
+## Original Project
+
+This project is based on [asitop](https://github.com/tlkh/asitop) by [Timothy Liu](https://github.com/tlkh). We thank the original author for their excellent work in creating the foundation for Apple Silicon performance monitoring.

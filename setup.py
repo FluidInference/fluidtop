@@ -3,11 +3,11 @@ from setuptools import setup, find_packages
 long_description = 'Performance monitoring CLI tool for Apple Silicon'
 
 setup(
-    name='asitop',
+    name='fluid-top',
     version='0.0.22',
     author='Timothy Liu',
     author_email='tlkh.xms@gmail.com',
-    url='https://github.com/tlkh/asitop',
+    url='https://github.com/FluidInference/fluidtop',
     description='Performance monitoring CLI tool for Apple Silicon',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -15,7 +15,7 @@ setup(
     packages=find_packages(),
     entry_points={
             'console_scripts': [
-                'asitop = asitop.asitop:main'
+                'fluidtop = fluidtop.fluidtop:main'
             ]
     },
     classifiers=(
@@ -23,7 +23,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: MacOS",
     ),
-    keywords='asitop',
+    keywords='fluidtop fluid-top',
     install_requires=[
         "dashing",
         "psutil",

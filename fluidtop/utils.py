@@ -7,7 +7,7 @@ from .parsers import *
 import plistlib
 
 
-def parse_powermetrics(path='/tmp/asitop_powermetrics', timecode="0"):
+def parse_powermetrics(path='/tmp/fluidtop_powermetrics', timecode="0"):
     data = None
     try:
         with open(path+timecode, 'rb') as fp:
@@ -47,7 +47,7 @@ def convert_to_GB(value):
 def run_powermetrics_process(timecode, nice=10, interval=1000):
     #ver, *_ = platform.mac_ver()
     #major_ver = int(ver.split(".")[0])
-    for tmpf in glob.glob("/tmp/asitop_powermetrics*"):
+    for tmpf in glob.glob("/tmp/fluidtop_powermetrics*"):
         os.remove(tmpf)
     output_file_flag = "-o"
     command = " ".join([
@@ -56,7 +56,7 @@ def run_powermetrics_process(timecode, nice=10, interval=1000):
         "powermetrics",
         "--samplers cpu_power,gpu_power,thermal",
         output_file_flag,
-        "/tmp/asitop_powermetrics"+timecode,
+        "/tmp/fluidtop_powermetrics"+timecode,
         "-f plist",
         "-i",
         str(interval)

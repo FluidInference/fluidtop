@@ -3,7 +3,7 @@ requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "asitop"
+name = "fluid-top"
 version = "0.0.22"
 description = "Performance monitoring CLI tool for Apple Silicon"
 readme = "README.md"
@@ -11,7 +11,7 @@ license = {text = "MIT"}
 authors = [
     {name = "Timothy Liu", email = "tlkh.xms@gmail.com"}
 ]
-keywords = ["asitop", "apple-silicon", "performance", "monitoring", "m1", "m2"]
+keywords = ["fluidtop", "fluid-top", "apple-silicon", "performance", "monitoring", "m1", "m2"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -30,18 +30,18 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/tlkh/asitop"
-Repository = "https://github.com/tlkh/asitop"
-Issues = "https://github.com/tlkh/asitop/issues"
+Homepage = "https://github.com/FluidInference/fluidtop"
+Repository = "https://github.com/FluidInference/fluidtop"
+Issues = "https://github.com/FluidInference/fluidtop/issues"
 
 [project.scripts]
-asitop = "asitop.asitop:main"
+fluidtop = "fluidtop.fluidtop:main"
 
 [tool.setuptools]
-packages = ["asitop"]
+packages = ["fluidtop"]
 
 [tool.setuptools.package-data]
-asitop = ["*.py"]
+fluidtop = ["*.py"]
 
 [tool.uv]
 dev-dependencies = []

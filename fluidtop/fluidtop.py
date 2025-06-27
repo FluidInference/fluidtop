@@ -6,7 +6,7 @@ from dashing import VSplit, HSplit, HGauge, HChart, VGauge
 from .utils import *
 
 parser = argparse.ArgumentParser(
-    description='asitop: Performance monitoring CLI tool for Apple Silicon')
+    description='fluidtop: Performance monitoring CLI tool for Apple Silicon')
 parser.add_argument('--interval', type=int, default=1,
                     help='Display interval and sampling interval for powermetrics (seconds)')
 parser.add_argument('--color', type=int, default=2,
@@ -35,13 +35,13 @@ def detect_ghostty():
 def main():
     is_ghostty = detect_ghostty()
     
-    print("\nASITOP - Performance monitoring CLI tool for Apple Silicon")
+    print("\nFLUIDTOP - Performance monitoring CLI tool for Apple Silicon")
     if is_ghostty:
         print("Detected Ghostty terminal - optimized for GPU acceleration")
-    print("You can update ASITOP by running `pip install asitop --upgrade`")
-    print("Get help at `https://github.com/tlkh/asitop`")
-    print("P.S. You are recommended to run ASITOP with `sudo asitop`\n")
-    print("\n[1/3] Loading ASITOP\n")
+    print("You can update FLUIDTOP by running `pip install fluid-top --upgrade`")
+    print("Get help at `https://github.com/FluidInference/fluidtop`")
+    print("P.S. You are recommended to run FLUIDTOP with `sudo fluidtop`\n")
+    print("\n[1/3] Loading FLUIDTOP\n")
     print("\033[?25l")
 
     cpu1_gauge = HGauge(title="E-CPU Usage", val=0, color=args.color)
