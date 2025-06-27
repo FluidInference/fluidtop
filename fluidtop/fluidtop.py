@@ -260,14 +260,14 @@ class FluidTopApp(App):
     #power-section {{
         border: solid {colors['primary']};
         padding: 0;
-        height: 1fr;
+        height: 2fr;
         background: $surface;
     }}
     
     #controls-section {{
         border: solid {colors['accent']};
         padding: 0;
-        height: 5;
+        height: 3;
         background: $surface;
     }}
     
@@ -305,9 +305,8 @@ class FluidTopApp(App):
             with Horizontal():
                 yield UsageChart("E-CPU Usage", interval=self.interval, color=self.theme_colors, id="e-cpu-usage-chart")
                 yield UsageChart("P-CPU Usage", interval=self.interval, color=self.theme_colors, id="p-cpu-usage-chart")
-                yield UsageChart("GPU Usage", interval=self.interval, color=self.theme_colors, id="gpu-usage-chart")
             with Horizontal():
-                yield UsageChart("ANE Usage", ylabel="ANE (%)", interval=self.interval, color=self.theme_colors, id="ane-usage-chart")
+                yield UsageChart("GPU Usage", interval=self.interval, color=self.theme_colors, id="gpu-usage-chart")
                 yield UsageChart("RAM Usage", ylabel="RAM (%)", interval=self.interval, color=self.theme_colors, id="ram-usage-chart")
         
         # Power section
@@ -316,6 +315,7 @@ class FluidTopApp(App):
             with Horizontal():
                 yield PowerChart("CPU Power", interval=self.interval, color=self.theme_colors, id="cpu-power-chart")
                 yield PowerChart("GPU Power", interval=self.interval, color=self.theme_colors, id="gpu-power-chart")
+            with Horizontal():
                 yield PowerChart("ANE Power", interval=self.interval, color=self.theme_colors, id="ane-power-chart")
                 yield PowerChart("Total Power", interval=self.interval, color=self.theme_colors, id="total-power-chart")
         
@@ -416,15 +416,6 @@ class FluidTopApp(App):
         gpu_title = f"GPU: {gpu_usage}% @ {gpu_freq} MHz"
         gpu_chart.update_title(gpu_title)
         gpu_chart.add_data(gpu_usage)
-        
-        # Update ANE usage chart (based on power consumption as proxy for utilization)
-        ane_chart = self.query_one("#ane-usage-chart", UsageChart)
-        ane_power_W = cpu_metrics_dict["ane_W"] / self.interval
-        ane_max_power = 8.0  # Max ANE power
-        ane_usage_percent = min((ane_power_W / ane_max_power) * 100, 100)  # Convert power to percentage, cap at 100%
-        ane_title = f"ANE: {ane_usage_percent:.1f}% ({ane_power_W:.2f}W)"
-        ane_chart.update_title(ane_title)
-        ane_chart.add_data(ane_usage_percent)
         
         # Update RAM usage chart with swap information
         ram_metrics_dict = get_ram_metrics_dict()

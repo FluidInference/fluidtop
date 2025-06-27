@@ -4,7 +4,7 @@ MacOS hardware performance monitoring CLI tool with a focus on AI Workloads
 
 ## What is `fluidtop`
 
-A Python-based `nvtop`-inspired command line tool for Apple Silicon Macs (M1, M2, M3, M4+). This is an enhanced and actively maintained fork of the original [asitop](https://github.com/tlkh/asitop) project, with additional features and support for newer hardware. The original MIT license and commit history is preserved. 
+A Python-based `nvtop`-inspired command line tool for Apple Silicon Macs (M1, M2, M3, M4+). This is an enhanced and actively maintained fork of the original [asitop](https://github.com/tlkh/asitop) project, with additional features and support for newer hardware. The original MIT license and commit history are preserved. Why did we fork the original repo? It's a great tool, but it lacks maintenance. Not supporting Ghostty was an annoying enough problem to justify the fork, and we also wanted to see more temporal metrics.
 
 ![View animated demo (GIF)](images/live.gif)
 
