@@ -78,7 +78,7 @@ pip install fluid-top
 sudo uv run fluidtop
 
 # Run with options
-sudo uv run fluidtop --interval 2 --color 5 --avg 60 --show_cores true
+sudo uv run fluidtop --interval 2 --theme green --avg 60 --show_cores true
 
 # Alternative: run the module directly
 sudo uv run -m fluidtop.fluidtop
@@ -96,12 +96,12 @@ sudo fluidtop
 fluidtop
 
 # With options
-fluidtop --interval 2 --color 5 --avg 60 --show_cores true
+fluidtop --interval 2 --theme green --avg 60 --show_cores true
 ```
 
 ### Available Command Line Options
 - `--interval INTERVAL`: Display and powermetrics sampling interval (seconds, default: 1)
-- `--color COLOR`: Display color theme (0-8, default: 2)
+- `--theme THEME`: Display color theme (default|blue|green|red|purple|orange|cyan|magenta, default: blue)
 - `--avg AVG`: Averaging window for power values (seconds, default: 30)
 - `--show_cores`: Enable individual core monitoring display
 - `--max_count`: Restart powermetrics after N samples (for long-running sessions)

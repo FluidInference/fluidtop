@@ -8,6 +8,7 @@ from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.widgets import ProgressBar, Static, Label, Button
 from textual_plotext import PlotextPlot
+import plotext as plt
 import os
 from datetime import datetime
 from .utils import run_powermetrics_process, parse_powermetrics, get_soc_info, get_ram_metrics_dict
@@ -37,21 +38,50 @@ class MetricGauge(Static):
 class PowerChart(PlotextPlot):
     """Custom chart widget for power consumption data"""
     
-    def __init__(self, title: str = "", **kwargs):
+    def __init__(self, title: str = "", interval: int = 1, color: Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
         self.title = title
-        self.data_points = deque(maxlen=100)
+        self.interval = interval
+        self.color = color or "cyan"  # Default color
+        # Store up to 3600 data points (1 hour at 1 second intervals)
+        self.data_points = deque(maxlen=3600)
+        self.timestamps = deque(maxlen=3600)
+        self.start_time = time.time()
         
     def on_mount(self):
         self.plt.title(self.title)
-        self.plt.xlabel("Time")
+        self.plt.xlabel("Time (minutes ago)")
         self.plt.ylabel("Power (%)")
+        # Set color theme
+        self.plt.theme("pro")  # Use a theme that works well with custom colors
+        self.plt.plotsize(None, None)  # Auto-size
     
     def add_data(self, value: float):
+        current_time = time.time()
         self.data_points.append(value)
+        self.timestamps.append(current_time)
         self.plt.clear_data()
+        
         if len(self.data_points) > 1:
-            self.plt.plot(list(range(len(self.data_points))), list(self.data_points))
+            # Calculate time differences from now in minutes
+            time_diffs = [(current_time - t) / 60 for t in self.timestamps]
+            # Reverse so most recent is on the right
+            time_diffs = [-td for td in time_diffs]
+            
+            self.plt.plot(time_diffs, list(self.data_points), marker="braille", color=self.color)
+            
+            # Set x-axis labels - show actual time values
+            if len(time_diffs) >= 5:
+                # Show 5 evenly spaced labels
+                indices = [0, len(time_diffs)//4, len(time_diffs)//2, 3*len(time_diffs)//4, len(time_diffs)-1]
+                ticks = [time_diffs[i] for i in indices]
+                labels = [f"{abs(t):.1f}" for t in ticks]
+                self.plt.xticks(ticks, labels)
+            else:
+                # For fewer points, show all
+                labels = [f"{abs(t):.1f}" for t in time_diffs]
+                self.plt.xticks(time_diffs, labels)
+        
         self.refresh()
     
     def update_title(self, title: str):
@@ -63,23 +93,52 @@ class PowerChart(PlotextPlot):
 class UsageChart(PlotextPlot):
     """Custom chart widget for usage percentage data"""
     
-    def __init__(self, title: str = "", ylabel: str = "Usage (%)", **kwargs):
+    def __init__(self, title: str = "", ylabel: str = "Usage (%)", interval: int = 1, color: Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
         self.title = title
         self.ylabel = ylabel
-        self.data_points = deque(maxlen=100)
+        self.interval = interval
+        self.color = color or "cyan"  # Default color
+        # Store up to 3600 data points (1 hour at 1 second intervals)
+        self.data_points = deque(maxlen=3600)
+        self.timestamps = deque(maxlen=3600)
+        self.start_time = time.time()
         
     def on_mount(self):
         self.plt.title(self.title)
-        self.plt.xlabel("Time")
+        self.plt.xlabel("Time (minutes ago)")
         self.plt.ylabel(self.ylabel)
         self.plt.ylim(0, 100)
+        # Set color theme
+        self.plt.theme("pro")  # Use a theme that works well with custom colors
+        self.plt.plotsize(None, None)  # Auto-size
     
     def add_data(self, value: float):
+        current_time = time.time()
         self.data_points.append(value)
+        self.timestamps.append(current_time)
         self.plt.clear_data()
+        
         if len(self.data_points) > 1:
-            self.plt.plot(list(range(len(self.data_points))), list(self.data_points))
+            # Calculate time differences from now in minutes
+            time_diffs = [(current_time - t) / 60 for t in self.timestamps]
+            # Reverse so most recent is on the right
+            time_diffs = [-td for td in time_diffs]
+            
+            self.plt.plot(time_diffs, list(self.data_points), marker="braille", color=self.color)
+            
+            # Set x-axis labels - show actual time values
+            if len(time_diffs) >= 5:
+                # Show 5 evenly spaced labels
+                indices = [0, len(time_diffs)//4, len(time_diffs)//2, 3*len(time_diffs)//4, len(time_diffs)-1]
+                ticks = [time_diffs[i] for i in indices]
+                labels = [f"{abs(t):.1f}" for t in ticks]
+                self.plt.xticks(ticks, labels)
+            else:
+                # For fewer points, show all
+                labels = [f"{abs(t):.1f}" for t in time_diffs]
+                self.plt.xticks(time_diffs, labels)
+        
         self.refresh()
     
     def update_title(self, title: str):
@@ -91,62 +150,16 @@ class UsageChart(PlotextPlot):
 class FluidTopApp(App):
     """Main FluidTop application using Textual"""
     
-    CSS = """
-    MetricGauge {
-        height: 3;
-        margin: 1;
-        border: solid $primary;
-    }
+    # CSS is set dynamically in _apply_theme method
     
-    PowerChart {
-        height: 10;
-        margin: 1;
-        border: solid $primary;
-    }
-    
-    UsageChart {
-        height: 10;
-        margin: 1;
-        border: solid $primary;
-    }
-    
-    #usage-section {
-        border: solid $primary;
-        padding: 1;
-    }
-    
-    #power-section {
-        border: solid $primary;
-        padding: 1;
-    }
-    
-    #controls-section {
-        border: solid $accent;
-        padding: 1;
-        height: 7;
-    }
-    
-    #controls-buttons {
-        align: right middle;
-    }
-    
-    Button {
-        margin: 0 1;
-        min-width: 12;
-        height: 3;
-        border: none;
-        text-align: center;
-    }
-    """
-    
-    def __init__(self, interval: int, theme: str, avg: int, show_cores: bool, max_count: int):
+    def __init__(self, interval: int, theme: str, avg: int, max_count: int):
         super().__init__()
         self.interval = interval
         self.theme = theme
+        self.theme_colors = self._get_theme_colors(theme)
         # Apply theme
         self._apply_theme(theme)
         self.avg = avg
-        self.show_cores = show_cores
         self.max_count = max_count
         
         # Initialize metrics storage
@@ -168,37 +181,128 @@ class FluidTopApp(App):
         # SoC info
         self.soc_info_dict = get_soc_info()
         
+    def _get_theme_colors(self, theme: str) -> dict:
+        """Get the color mapping for the theme"""
+        theme_chart_colors = {
+            'default': 'white',
+            'blue': 'blue',
+            'green': 'green',
+            'red': 'red',
+            'purple': 'magenta',
+            'orange': 'yellow',  # plotext doesn't have orange, use yellow
+            'cyan': 'cyan',
+            'magenta': 'magenta'
+        }
+        return {'chart': theme_chart_colors.get(theme, 'cyan')}
+        
+    def _apply_theme(self, theme: str):
+        """Apply color theme to the application"""
+        themes = {
+            'default': {'primary': '#e2e8f0', 'accent': '#94a3b8'},  # slate-200/400
+            'blue': {'primary': '#3b82f6', 'accent': '#2563eb'},     # blue-500/600
+            'green': {'primary': '#22c55e', 'accent': '#16a34a'},    # green-500/600
+            'red': {'primary': '#ef4444', 'accent': '#dc2626'},      # red-500/600
+            'purple': {'primary': '#a855f7', 'accent': '#9333ea'},   # purple-500/600
+            'orange': {'primary': '#f97316', 'accent': '#ea580c'},   # orange-500/600
+            'cyan': {'primary': '#06b6d4', 'accent': '#0891b2'},     # cyan-500/600
+            'magenta': {'primary': '#ec4899', 'accent': '#db2777'}   # pink-500/600
+        }
+        
+        if theme in themes:
+            colors = themes[theme]
+            # Update CSS with theme colors and increased chart heights
+            self.CSS = f"""
+    MetricGauge {{
+        height: 3;
+        margin: 1;
+        border: solid {colors['primary']};
+    }}
+    
+    PowerChart {{
+        height: 20;
+        margin: 1;
+        border: solid {colors['primary']};
+        background: $surface;
+    }}
+    
+    PowerChart PlotextPlot {{
+        background: $surface;
+    }}
+    
+    UsageChart {{
+        height: 20;
+        margin: 1;
+        border: solid {colors['primary']};
+        background: $surface;
+    }}
+    
+    UsageChart PlotextPlot {{
+        background: $surface;
+    }}
+    
+    #usage-section {{
+        border: solid {colors['primary']};
+        padding: 1;
+        background: $surface;
+    }}
+    
+    #power-section {{
+        border: solid {colors['primary']};
+        padding: 1;
+        background: $surface;
+    }}
+    
+    #controls-section {{
+        border: solid {colors['accent']};
+        padding: 1;
+        height: 7;
+        background: $surface;
+    }}
+    
+    #controls-buttons {{
+        align: right middle;
+    }}
+    
+    Button {{
+        margin: 0 1;
+        min-width: 12;
+        height: 3;
+        border: none;
+        text-align: center;
+    }}
+    
+    Label {{
+        color: {colors['primary']};
+    }}
+    
+    #usage-title, #power-title, #controls-title {{
+        text-style: bold;
+        margin-bottom: 1;
+    }}
+    """
+        
     def compose(self) -> ComposeResult:
         """Compose the UI layout"""
         
         # Usage Charts section
         with Vertical(id="usage-section"):
             yield Label("Device Info", id="usage-title")
-            if self.show_cores:
-                yield UsageChart("E-CPU Usage", id="e-cpu-usage-chart")
-                yield UsageChart("GPU Usage", id="gpu-usage-chart")
-                yield UsageChart("RAM Usage", ylabel="RAM (%)", id="ram-usage-chart")
-            else:
-                with Horizontal():
-                    yield UsageChart("E-CPU Usage", id="e-cpu-usage-chart")
-                    yield UsageChart("GPU Usage", id="gpu-usage-chart")
-                    yield UsageChart("RAM Usage", ylabel="RAM (%)", id="ram-usage-chart")
+            with Horizontal():
+                yield UsageChart("E-CPU Usage", interval=self.interval, color=self.theme_colors['chart'], id="e-cpu-usage-chart")
+                yield UsageChart("GPU Usage", interval=self.interval, color=self.theme_colors['chart'], id="gpu-usage-chart")
+                yield UsageChart("RAM Usage", ylabel="RAM (%)", interval=self.interval, color=self.theme_colors['chart'], id="ram-usage-chart")
         
         # Power section
         with Vertical(id="power-section"):
             yield Label("Power Charts", id="power-title")
-            if self.show_cores:
-                yield PowerChart("CPU Power", id="cpu-power-chart")
-                yield PowerChart("GPU Power", id="gpu-power-chart")
-                yield PowerChart("Total Power", id="total-power-chart")
-            else:
-                with Horizontal():
-                    yield PowerChart("CPU Power", id="cpu-power-chart")
-                    yield PowerChart("GPU Power", id="gpu-power-chart")
-                    yield PowerChart("Total Power", id="total-power-chart")
+            with Horizontal():
+                yield PowerChart("CPU Power", interval=self.interval, color=self.theme_colors['chart'], id="cpu-power-chart")
+                yield PowerChart("GPU Power", interval=self.interval, color=self.theme_colors['chart'], id="gpu-power-chart")
+                yield PowerChart("Total Power", interval=self.interval, color=self.theme_colors['chart'], id="total-power-chart")
         
         # Controls section
         with Vertical(id="controls-section"):
+            yield Label("Controls", id="controls-title")
             with Horizontal(id="controls-buttons"):
                 yield Button("📸 Screenshot", id="screenshot-btn", variant="primary")
                 yield Button("❌ Quit", id="quit-btn", variant="error")
@@ -407,18 +511,18 @@ class FluidTopApp(App):
 @click.command()
 @click.option('--interval', type=int, default=1,
               help='Display interval and sampling interval for powermetrics (seconds)')
-@click.option('--theme', type=click.Choice(['default', 'blue', 'green', 'red', 'purple', 'orange', 'cyan', 'magenta']), default='blue',
+@click.option('--theme', type=click.Choice(['default', 'dark', 'blue', 'green', 'red', 'purple', 'orange', 'cyan', 'magenta']), default='blue',
               help='Choose color theme')
 @click.option('--avg', type=int, default=30,
               help='Interval for averaged values (seconds)')
 @click.option('--max_count', type=int, default=0,
               help='Max show count to restart powermetrics')
-def main(interval, theme, avg, show_cores, max_count):
+def main(interval, theme, avg, max_count):
     """fluidtop: Performance monitoring CLI tool for Apple Silicon"""
-    return _main_logic(interval, theme, avg, show_cores, max_count)
+    return _main_logic(interval, theme, avg, max_count)
 
 
-def _main_logic(interval, theme, avg, show_cores, max_count):
+def _main_logic(interval, theme, avg, max_count):
     """Main logic using Textual app"""
     print("\nFLUIDTOP - Performance monitoring CLI tool for Apple Silicon")
     print("You can update FLUIDTOP by running `pip install fluid-top --upgrade`")
@@ -426,7 +530,7 @@ def _main_logic(interval, theme, avg, show_cores, max_count):
     print("P.S. You are recommended to run FLUIDTOP with `sudo fluidtop`\n")
     
     # Create and run the Textual app
-    app = FluidTopApp(interval, theme, avg, show_cores, max_count)
+    app = FluidTopApp(interval, theme, avg, max_count)
     try:
         app.run()
     except KeyboardInterrupt:
