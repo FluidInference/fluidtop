@@ -1,6 +1,6 @@
-# fluidtop
+# fluidtop 
 
-Performance monitoring CLI tool for Apple Silicon Macs with enhanced support for modern hardware and AI workload monitoring.
+MacOS hardware performance monitoring CLI tool with a focus on AI Workloads
 
 ## What is `fluidtop`
 

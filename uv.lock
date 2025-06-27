@@ -11,24 +11,6 @@ wheels = [
 ]
 
 [[package]]
-name = "asitop"
-version = "0.0.22"
-source = { editable = "." }
-dependencies = [
-    { name = "dashing" },
-    { name = "psutil" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "dashing" },
-    { name = "psutil" },
-]
-
-[package.metadata.requires-dev]
-dev = []
-
-[[package]]
 name = "blessed"
 version = "1.21.0"
 source = { registry = "https://pypi.org/simple" }
@@ -49,6 +31,24 @@ dependencies = [
     { name = "blessed" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/bd/01/1c966934ab5ebe5a8fa3012c5de32bfa86916dba0428bdc6cdfe9489f768/dashing-0.1.0.tar.gz", hash = "sha256:2514608e0f29a775dbd1b1111561219ce83d53cfa4baa2fe4101fab84fd56f1b", size = 9637 }
+
+[[package]]
+name = "fluid-top"
+version = "0.0.22"
+source = { editable = "." }
+dependencies = [
+    { name = "dashing" },
+    { name = "psutil" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "dashing" },
+    { name = "psutil" },
+]
+
+[package.metadata.requires-dev]
+dev = []
 
 [[package]]
 name = "jinxed"
