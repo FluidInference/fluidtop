@@ -47,11 +47,15 @@ class PowerChart(PlotextPlot):
         self.data_points = deque(maxlen=3600)
         self.timestamps = deque(maxlen=3600)
         self.start_time = time.time()
+        self.axes_color = self.plot_color
+        self.canvas_color = self.plot_color
         
     def on_mount(self):
         self.plt.title(self.title)
         self.plt.xlabel("Time (minutes ago)")
         self.plt.ylabel("Power (%)")
+        self.plt.axes_color(self.axes_color)
+        self.plt.canvas_color(self.canvas_color)
         self.auto_theme = True
         self.plt.plotsize(None, None)  # Auto-size
     
@@ -182,34 +186,34 @@ class FluidTopApp(App):
         self.soc_info_dict = get_soc_info()
         
     def _get_theme_colors(self, theme: str) -> dict:
-        """Get the color mapping for the theme"""
-        # Using simple color names that plotext definitely supports
+        """Get the color mapping for the theme using shadcn-inspired colors"""
+        # Using hex colors inspired by shadcn design system
         theme_chart_colors = {
-            'default': 'white',
-            'dark': 'gray',
-            'blue': 'blue',
-            'green': 'green',
-            'red': 'red',
-            'purple': 'magenta',
-            'orange': 'yellow',
-            'cyan': 'cyan',
-            'magenta': 'magenta'
+            'default': '#71717a',  # zinc-500
+            'dark': '#27272a',     # zinc-800
+            'blue': '#3b82f6',     # blue-500
+            'green': '#22c55e',    # green-500
+            'red': '#ef4444',      # red-500
+            'purple': '#a855f7',   # purple-500
+            'orange': '#FD8161',   # orange-500
+            'cyan': '#06b6d4',     # cyan-500
+            'magenta': '#ec4899'   # pink-500
         }
-        return theme_chart_colors.get(theme, 'cyan')
+        return theme_chart_colors.get(theme, '#5DAF8D')
         
     def _apply_theme(self, theme: str):
         """Apply color theme to the application"""
-        # Textual CSS uses ANSI color names with ansi_ prefix
+        # Using shadcn-inspired hex colors for better design consistency
         themes = {
-            'default': {'primary': 'ansi_white', 'accent': 'ansi_bright_white'},
-            'dark': {'primary': 'ansi_bright_black', 'accent': 'ansi_black'},
-            'blue': {'primary': 'ansi_bright_blue', 'accent': 'ansi_blue'},
-            'green': {'primary': 'ansi_bright_green', 'accent': 'ansi_green'},
-            'red': {'primary': 'ansi_bright_red', 'accent': 'ansi_red'},
-            'purple': {'primary': 'ansi_bright_magenta', 'accent': 'ansi_magenta'},
-            'orange': {'primary': 'ansi_bright_yellow', 'accent': 'ansi_yellow'},
-            'cyan': {'primary': 'ansi_bright_cyan', 'accent': 'ansi_cyan'},
-            'magenta': {'primary': 'ansi_bright_magenta', 'accent': 'ansi_magenta'}
+            'default': {'primary': '#18181b', 'accent': '#71717a'},  # zinc-900, zinc-500
+            'dark': {'primary': '#fafafa', 'accent': '#a1a1aa'},     # zinc-50, zinc-400
+            'blue': {'primary': '#1e40af', 'accent': '#3b82f6'},     # blue-800, blue-500
+            'green': {'primary': '#166534', 'accent': '#22c55e'},    # green-800, green-500
+            'red': {'primary': '#dc2626', 'accent': '#ef4444'},      # red-600, red-500
+            'purple': {'primary': '#7c3aed', 'accent': '#a855f7'},   # violet-600, purple-500
+            'orange': {'primary': '#FD8161', 'accent': '#f97316'},   # orange-600, orange-500
+            'cyan': {'primary': '#5DAF8D', 'accent': '#06b6d4'},     # cyan-600, cyan-500
+            'magenta': {'primary': '#db2777', 'accent': '#ec4899'}   # pink-600, pink-500
         }
         
         if theme in themes:
