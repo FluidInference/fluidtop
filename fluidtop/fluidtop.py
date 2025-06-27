@@ -38,11 +38,11 @@ class MetricGauge(Static):
 class PowerChart(PlotextPlot):
     """Custom chart widget for power consumption data"""
     
-    def __init__(self, title: str = "", interval: int = 1, color: Optional[str] = None, **kwargs):
+    def __init__(self, title: str = "", interval: int = 1, color: str = "cyan", **kwargs):
         super().__init__(**kwargs)
         self.title = title
         self.interval = interval
-        self.color = color or "cyan"  # Default color
+        self.plot_color = color
         # Store up to 3600 data points (1 hour at 1 second intervals)
         self.data_points = deque(maxlen=3600)
         self.timestamps = deque(maxlen=3600)
@@ -52,8 +52,8 @@ class PowerChart(PlotextPlot):
         self.plt.title(self.title)
         self.plt.xlabel("Time (minutes ago)")
         self.plt.ylabel("Power (%)")
-        # Set color theme
-        self.plt.theme("pro")  # Use a theme that works well with custom colors
+        # Disable auto theming and use manual color control
+        self.auto_theme = False
         self.plt.plotsize(None, None)  # Auto-size
     
     def add_data(self, value: float):
@@ -68,7 +68,8 @@ class PowerChart(PlotextPlot):
             # Reverse so most recent is on the right
             time_diffs = [-td for td in time_diffs]
             
-            self.plt.plot(time_diffs, list(self.data_points), marker="braille", color=self.color)
+            # Use RGB color for plotting
+            self.plt.plot(time_diffs, list(self.data_points), marker="braille", color=self.plot_color)
             
             # Set x-axis labels - show actual time values
             if len(time_diffs) >= 5:
@@ -93,12 +94,12 @@ class PowerChart(PlotextPlot):
 class UsageChart(PlotextPlot):
     """Custom chart widget for usage percentage data"""
     
-    def __init__(self, title: str = "", ylabel: str = "Usage (%)", interval: int = 1, color: Optional[str] = None, **kwargs):
+    def __init__(self, title: str = "", ylabel: str = "Usage (%)", interval: int = 1, color: str = "cyan", **kwargs):
         super().__init__(**kwargs)
         self.title = title
         self.ylabel = ylabel
         self.interval = interval
-        self.color = color or "cyan"  # Default color
+        self.plot_color = color
         # Store up to 3600 data points (1 hour at 1 second intervals)
         self.data_points = deque(maxlen=3600)
         self.timestamps = deque(maxlen=3600)
@@ -109,8 +110,8 @@ class UsageChart(PlotextPlot):
         self.plt.xlabel("Time (minutes ago)")
         self.plt.ylabel(self.ylabel)
         self.plt.ylim(0, 100)
-        # Set color theme
-        self.plt.theme("pro")  # Use a theme that works well with custom colors
+        # Disable auto theming and use manual color control
+        self.auto_theme = False
         self.plt.plotsize(None, None)  # Auto-size
     
     def add_data(self, value: float):
@@ -125,7 +126,8 @@ class UsageChart(PlotextPlot):
             # Reverse so most recent is on the right
             time_diffs = [-td for td in time_diffs]
             
-            self.plt.plot(time_diffs, list(self.data_points), marker="braille", color=self.color)
+            # Use RGB color for plotting
+            self.plt.plot(time_diffs, list(self.data_points), marker="braille", color=self.plot_color)
             
             # Set x-axis labels - show actual time values
             if len(time_diffs) >= 5:
@@ -153,12 +155,12 @@ class FluidTopApp(App):
     # CSS is set dynamically in _apply_theme method
     
     def __init__(self, interval: int, theme: str, avg: int, max_count: int):
-        super().__init__()
         self.interval = interval
         self.theme = theme
         self.theme_colors = self._get_theme_colors(theme)
-        # Apply theme
+        # Apply theme BEFORE calling super().__init__()
         self._apply_theme(theme)
+        super().__init__()
         self.avg = avg
         self.max_count = max_count
         
@@ -183,29 +185,33 @@ class FluidTopApp(App):
         
     def _get_theme_colors(self, theme: str) -> dict:
         """Get the color mapping for the theme"""
+        # Using simple color names that plotext definitely supports
         theme_chart_colors = {
             'default': 'white',
+            'dark': 'gray',
             'blue': 'blue',
             'green': 'green',
             'red': 'red',
             'purple': 'magenta',
-            'orange': 'yellow',  # plotext doesn't have orange, use yellow
+            'orange': 'yellow',
             'cyan': 'cyan',
             'magenta': 'magenta'
         }
-        return {'chart': theme_chart_colors.get(theme, 'cyan')}
+        return theme_chart_colors.get(theme, 'cyan')
         
     def _apply_theme(self, theme: str):
         """Apply color theme to the application"""
+        # Textual CSS uses ANSI color names with ansi_ prefix
         themes = {
-            'default': {'primary': '#e2e8f0', 'accent': '#94a3b8'},  # slate-200/400
-            'blue': {'primary': '#3b82f6', 'accent': '#2563eb'},     # blue-500/600
-            'green': {'primary': '#22c55e', 'accent': '#16a34a'},    # green-500/600
-            'red': {'primary': '#ef4444', 'accent': '#dc2626'},      # red-500/600
-            'purple': {'primary': '#a855f7', 'accent': '#9333ea'},   # purple-500/600
-            'orange': {'primary': '#f97316', 'accent': '#ea580c'},   # orange-500/600
-            'cyan': {'primary': '#06b6d4', 'accent': '#0891b2'},     # cyan-500/600
-            'magenta': {'primary': '#ec4899', 'accent': '#db2777'}   # pink-500/600
+            'default': {'primary': 'ansi_white', 'accent': 'ansi_bright_white'},
+            'dark': {'primary': 'ansi_bright_black', 'accent': 'ansi_black'},
+            'blue': {'primary': 'ansi_bright_blue', 'accent': 'ansi_blue'},
+            'green': {'primary': 'ansi_bright_green', 'accent': 'ansi_green'},
+            'red': {'primary': 'ansi_bright_red', 'accent': 'ansi_red'},
+            'purple': {'primary': 'ansi_bright_magenta', 'accent': 'ansi_magenta'},
+            'orange': {'primary': 'ansi_bright_yellow', 'accent': 'ansi_yellow'},
+            'cyan': {'primary': 'ansi_bright_cyan', 'accent': 'ansi_cyan'},
+            'magenta': {'primary': 'ansi_bright_magenta', 'accent': 'ansi_magenta'}
         }
         
         if theme in themes:
@@ -288,21 +294,20 @@ class FluidTopApp(App):
         with Vertical(id="usage-section"):
             yield Label("Device Info", id="usage-title")
             with Horizontal():
-                yield UsageChart("E-CPU Usage", interval=self.interval, color=self.theme_colors['chart'], id="e-cpu-usage-chart")
-                yield UsageChart("GPU Usage", interval=self.interval, color=self.theme_colors['chart'], id="gpu-usage-chart")
-                yield UsageChart("RAM Usage", ylabel="RAM (%)", interval=self.interval, color=self.theme_colors['chart'], id="ram-usage-chart")
+                yield UsageChart("E-CPU Usage", interval=self.interval, color=self.theme_colors, id="e-cpu-usage-chart")
+                yield UsageChart("GPU Usage", interval=self.interval, color=self.theme_colors, id="gpu-usage-chart")
+                yield UsageChart("RAM Usage", ylabel="RAM (%)", interval=self.interval, color=self.theme_colors, id="ram-usage-chart")
         
         # Power section
         with Vertical(id="power-section"):
             yield Label("Power Charts", id="power-title")
             with Horizontal():
-                yield PowerChart("CPU Power", interval=self.interval, color=self.theme_colors['chart'], id="cpu-power-chart")
-                yield PowerChart("GPU Power", interval=self.interval, color=self.theme_colors['chart'], id="gpu-power-chart")
-                yield PowerChart("Total Power", interval=self.interval, color=self.theme_colors['chart'], id="total-power-chart")
+                yield PowerChart("CPU Power", interval=self.interval, color=self.theme_colors, id="cpu-power-chart")
+                yield PowerChart("GPU Power", interval=self.interval, color=self.theme_colors, id="gpu-power-chart")
+                yield PowerChart("Total Power", interval=self.interval, color=self.theme_colors, id="total-power-chart")
         
         # Controls section
         with Vertical(id="controls-section"):
-            yield Label("Controls", id="controls-title")
             with Horizontal(id="controls-buttons"):
                 yield Button("📸 Screenshot", id="screenshot-btn", variant="primary")
                 yield Button("❌ Quit", id="quit-btn", variant="error")
