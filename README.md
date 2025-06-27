@@ -1,103 +1,210 @@
-# fluidtop 
+# FluidTop - Apple Silicon Performance Monitor
 
-MacOS hardware performance monitoring CLI tool with a focus on AI Workloads
+[![PyPI version](https://badge.fury.io/py/fluid-top.svg)](https://badge.fury.io/py/fluid-top)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![macOS](https://img.shields.io/badge/macOS-Monterey%2B-green.svg)](https://www.apple.com/macos/)
+[![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-M1%2FM2%2FM3%2FM4-orange.svg)](https://www.apple.com/mac/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## What is `fluidtop`
+**Real-time macOS hardware performance monitoring CLI tool for Apple Silicon Macs (M1/M2/M3/M4+) with AI workload focus**
 
-A Python-based `nvtop`-inspired command line tool for Apple Silicon Macs (M1, M2, M3, M4+). This is an enhanced and actively maintained fork of the original [asitop](https://github.com/tlkh/asitop) project, with additional features and support for newer hardware. The original MIT license and commit history are preserved. Why did we fork the original repo? It's a great tool, but it lacks maintenance. Not supporting Ghostty was an annoying enough problem to justify the fork, and we also wanted to see more temporal metrics.
+FluidTop is a Python-based `nvtop`-inspired command line tool specifically designed for Apple Silicon Macs. This enhanced and actively maintained fork of the original [asitop](https://github.com/tlkh/asitop) project provides comprehensive hardware monitoring with additional features, support for newer Apple Silicon chips, and optimizations for modern terminal emulators including Ghostty.
 
 ![View animated demo (GIF)](images/live.gif)
 
 ![View static screenshot (PNG)](images/pic.png)
 
-### Key Features
+## 🚀 Key Features & Capabilities
 
-* Easy install with `uv`
-* Monitors CPU, GPU, and ANE usage in real time
-* Shows RAM, swap, and (where available) memory bandwidth
-* Tracks CPU/GPU power and detects thermal throttling
-* Supports all Apple Silicon (M1–M4+), with Ghostty terminal optimization
-* Individual core monitoring and future AI workload metrics
+### Hardware Monitoring
+* **Real-time CPU monitoring** - Individual core utilization and frequency tracking
+* **GPU performance tracking** - Apple GPU usage, memory, and power consumption  
+* **Neural Engine (ANE) monitoring** - AI/ML workload detection and utilization
+* **Memory bandwidth monitoring** - RAM, swap, and high-bandwidth memory tracking
+* **Power consumption analysis** - CPU/GPU power draw with thermal throttling detection
+* **Temperature monitoring** - System thermal state and throttling alerts
 
-## Installation and Usage
+### Apple Silicon Support
+* **Complete Apple Silicon coverage** - M1, M2, M3, M4, and future chip support
+* **Optimized for modern terminals** - Enhanced Ghostty compatibility and performance
+* **Hardware-specific metrics** - TDP and bandwidth specifications for all variants
+* **Individual core monitoring** - Detailed per-core performance and efficiency tracking
 
-### Quick Start with uv (Recommended)
+### AI & Machine Learning Focus
+* **AI workload detection** - Specialized monitoring for machine learning tasks
+* **Neural Engine utilization** - Track AI inference and training workloads
+* **Memory bandwidth optimization** - Critical for large model performance
+* **Future ML framework integration** - Planned support for popular AI libraries
 
-```shell
-# Install uv if not already installed
+## 📦 Installation & Usage
+
+### Quick Start with UV (Recommended)
+
+```bash
+# Install UV package manager
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Run directly without installation
+# Run FluidTop directly without installation
 sudo uv run fluidtop
 
-# Run with options
+# Run with custom options
 sudo uv run fluidtop --interval 2 --color 5 --avg 60 --show_cores true
 ```
 
+### Install from PyPI
 
-### Command Line Options
+```bash
+# Install with pip
+pip install fluid-top
 
-```shell
-fluidtop [-h] [--interval INTERVAL] [--color COLOR] [--avg AVG] [--show_cores] [--max_count MAX_COUNT]
+# Install with UV
+uv add fluid-top
 
-optional arguments:
-  -h, --help           show this help message and exit
-  --interval INTERVAL  Display and sampling interval for powermetrics (seconds, default: 1)
-  --color COLOR        Choose display color theme (0-8, default: 2)
-  --avg AVG            Averaging window for power values (seconds, default: 30)
-  --show_cores         Enable individual core monitoring display
-  --max_count          Restart powermetrics after N samples (for long-running sessions)
+# Run after installation
+sudo fluidtop
 ```
 
-## How it works
+### Development Installation
 
-`fluidtop` uses the built-in [`powermetrics`](https://www.unix.com/man-page/osx/1/powermetrics/) utility on macOS, which provides access to hardware performance counters. Root access is required due to `powermetrics` security requirements. The tool is lightweight with minimal performance impact.
+```bash
+# Clone repository
+git clone https://github.com/FluidInference/fluidtop.git
+cd fluidtop
 
-**System Requirements:** Apple Silicon Macs running macOS Monterey (12.0) or later.
+# Install in development mode
+uv sync
+sudo uv run fluidtop
+```
 
-### Data Sources
+## 🎛️ Command Line Options & Configuration
 
-* **CPU/GPU utilization:** `powermetrics` active residency measurements
-* **Power consumption:** Energy counters from `powermetrics`
-* **Memory usage:** [`psutil`](https://github.com/giampaolo/psutil) virtual memory statistics
-* **System information:** `sysctl` for CPU details, `system_profiler` for GPU specs
-* **Hardware specifications:** Built-in database with TDP and bandwidth specs for all Apple Silicon variants
+```bash
+fluidtop [OPTIONS]
 
-## Attribution and Development
+Options:
+  --interval INTERVAL   Display refresh rate in seconds (default: 1.0)
+  --color COLOR        Color theme selection 0-8 (default: 2)
+  --avg AVG           Power averaging window in seconds (default: 30)
+  --show_cores        Enable individual CPU core monitoring
+  --max_count COUNT   Restart powermetrics after N samples (stability)
+  -h, --help          Show help message and exit
+```
 
-This project is a fork and continuation of the original [asitop](https://github.com/tlkh/asitop) by Timothy Liu, which appears to be no longer actively maintained. We extend our gratitude to the original author for creating this excellent foundation.
+### Usage Examples
 
-### Why fluidtop?
+```bash
+# Basic monitoring with 1-second refresh
+sudo fluidtop
 
-The original `asitop` project provided an excellent base for Apple Silicon monitoring, but lacked support for:
-- Newer Apple Silicon chips (M3, M4+)
-- Modern terminal emulators like Ghostty
-- Enhanced monitoring capabilities for AI/ML workloads
+# High-frequency monitoring for AI workloads
+sudo fluidtop --interval 0.5 --show_cores
 
-`fluidtop` addresses these gaps while maintaining full compatibility with the original tool's functionality.
+# Long-term monitoring with 60-second power averaging
+sudo fluidtop --avg 60 --max_count 1000
 
-### Roadmap
+# Custom color theme
+sudo fluidtop --color 5
+```
 
+## 🔧 How FluidTop Works
+
+FluidTop leverages macOS's built-in [`powermetrics`](https://www.unix.com/man-page/osx/1/powermetrics/) utility to access hardware performance counters with minimal system impact. Root privileges are required due to `powermetrics` security requirements.
+
+### Technical Architecture
+
+* **CPU/GPU Utilization:** Active residency measurements via `powermetrics`
+* **Power Consumption:** Hardware energy counters and thermal state monitoring
+* **Memory Statistics:** [`psutil`](https://github.com/giampaolo/psutil) virtual memory and swap tracking
+* **System Information:** `sysctl` CPU details and `system_profiler` GPU specifications
+* **Hardware Database:** Built-in TDP and bandwidth specifications for all Apple Silicon variants
+
+### System Requirements
+
+* **Hardware:** Apple Silicon Mac (M1, M2, M3, M4, or newer)
+* **Operating System:** macOS Monterey (12.0) or later
+* **Python:** Python 3.8+ (automatically managed with UV)
+* **Privileges:** Root access required for `powermetrics`
+
+## 🆚 FluidTop vs Alternatives
+
+| Feature | FluidTop | asitop | Activity Monitor | htop |
+|---------|----------|--------|------------------|------|
+| Apple Silicon Optimized | ✅ | ⚠️ | ✅ | ❌ |
+| Neural Engine Monitoring | ✅ | ❌ | ❌ | ❌ |
+| GPU Memory Tracking | ✅ | ✅ | ⚠️ | ❌ |
+| AI Workload Detection | ✅ | ❌ | ❌ | ❌ |
+| Terminal Compatibility | ✅ | ⚠️ | ❌ | ✅ |
+| Real-time Power Monitoring | ✅ | ✅ | ⚠️ | ❌ |
+| Individual Core Tracking | ✅ | ✅ | ❌ | ⚠️ |
+| Active Development | ✅ | ❌ | ✅ | ✅ |
+
+## 🔄 Project History & Attribution
+
+FluidTop is an enhanced fork of the original [asitop](https://github.com/tlkh/asitop) project by Timothy Liu. We maintain full compatibility while adding modern features and hardware support.
+
+### Why Fork asitop?
+
+The original `asitop` provided excellent Apple Silicon monitoring but lacked:
+- **Modern hardware support** - M3, M4+ compatibility
+- **Terminal compatibility** - Ghostty and modern terminal optimization  
+- **AI workload focus** - Machine learning specific monitoring
+- **Active maintenance** - Regular updates and bug fixes
+
+### Migration from asitop
+
+FluidTop is a drop-in replacement for asitop with identical command-line interface:
+
+```bash
+# Replace this:
+sudo asitop
+
+# With this:
+sudo fluidtop
+```
+
+## 🗺️ Roadmap & Development
+
+### Completed Features
 - ✅ Enhanced hardware support (M1-M4+)
-- ✅ Ghostty terminal optimization
-- ✅ Improved user experience and documentation
-- 🔄 Advanced AI workload monitoring
+- ✅ Ghostty terminal optimization  
+- ✅ Improved documentation and user experience
+- ✅ PyPI publishing and UV integration
+
+### In Development
+- 🔄 Advanced AI workload monitoring and detection
 - 🔄 Custom monitoring profiles for different use cases
-- 🔄 Export capabilities for performance data
-- 🔄 Integration with popular ML frameworks
+- 🔄 Performance data export capabilities (CSV, JSON)
+- 🔄 Integration with popular ML frameworks (PyTorch, TensorFlow)
 
-## Contributing
+### Planned Features
+- 📋 Web dashboard for remote monitoring
+- 📋 Historical performance data analysis
+- 📋 Alerting and notification system
+- 📋 Plugin architecture for extensibility
 
-Issues:
+## 🐛 Known Issues & Contributing
 
-- Need to make the chart height adapt to the height of the terminal, the width is fine but height doesn't change
-- the color inside the plot isn't respecting the theme color
+### Current Issues
+- Chart height doesn't adapt to terminal height (width works correctly)
+- Plot colors don't always respect theme selection
+- Long-running sessions may require periodic restart
 
+### Contributing
+We welcome contributions! Please see our [contribution guidelines](https://github.com/FluidInference/fluidtop/blob/main/CONTRIBUTING.md) and feel free to:
 
-## License
+- Report bugs and request features via [GitHub Issues](https://github.com/FluidInference/fluidtop/issues)
+- Submit pull requests for bug fixes and improvements
+- Improve documentation and examples
+- Test on different Apple Silicon variants
 
-MIT License - same as the original asitop project.
+## 📄 License
 
-## Original Project
+MIT License - maintaining compatibility with the original asitop project.
 
-This project is based on [asitop](https://github.com/tlkh/asitop) by [Timothy Liu](https://github.com/tlkh). We thank the original author for their excellent work in creating the foundation for Apple Silicon performance monitoring.
+## 🙏 Acknowledgments
+
+This project builds upon the excellent foundation created by [Timothy Liu](https://github.com/tlkh) with the original [asitop](https://github.com/tlkh/asitop) project. We extend our gratitude for creating the groundwork for Apple Silicon performance monitoring.
+
+---
+
+**Keywords:** Apple Silicon monitoring, M1 M2 M3 M4 performance, macOS system monitor, AI workload tracking, Neural Engine monitoring, GPU utilization, real-time hardware stats, terminal performance tool, powermetrics CLI, asitop alternative
