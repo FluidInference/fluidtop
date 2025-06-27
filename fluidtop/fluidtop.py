@@ -52,8 +52,7 @@ class PowerChart(PlotextPlot):
         self.plt.title(self.title)
         self.plt.xlabel("Time (minutes ago)")
         self.plt.ylabel("Power (%)")
-        # Disable auto theming and use manual color control
-        self.auto_theme = False
+        self.auto_theme = True
         self.plt.plotsize(None, None)  # Auto-size
     
     def add_data(self, value: float):
@@ -110,8 +109,7 @@ class UsageChart(PlotextPlot):
         self.plt.xlabel("Time (minutes ago)")
         self.plt.ylabel(self.ylabel)
         self.plt.ylim(0, 100)
-        # Disable auto theming and use manual color control
-        self.auto_theme = False
+        self.auto_theme = True
         self.plt.plotsize(None, None)  # Auto-size
     
     def add_data(self, value: float):
@@ -216,17 +214,17 @@ class FluidTopApp(App):
         
         if theme in themes:
             colors = themes[theme]
-            # Update CSS with theme colors and increased chart heights
+            # Update CSS with theme colors and reduced padding
             self.CSS = f"""
     MetricGauge {{
         height: 3;
-        margin: 1;
+        margin: 0;
         border: solid {colors['primary']};
     }}
     
     PowerChart {{
         height: 20;
-        margin: 1;
+        margin: 0;
         border: solid {colors['primary']};
         background: $surface;
     }}
@@ -237,7 +235,7 @@ class FluidTopApp(App):
     
     UsageChart {{
         height: 20;
-        margin: 1;
+        margin: 0;
         border: solid {colors['primary']};
         background: $surface;
     }}
@@ -248,20 +246,20 @@ class FluidTopApp(App):
     
     #usage-section {{
         border: solid {colors['primary']};
-        padding: 1;
+        padding: 0;
         background: $surface;
     }}
     
     #power-section {{
         border: solid {colors['primary']};
-        padding: 1;
+        padding: 0;
         background: $surface;
     }}
     
     #controls-section {{
         border: solid {colors['accent']};
-        padding: 1;
-        height: 7;
+        padding: 0;
+        height: 5;
         background: $surface;
     }}
     
@@ -272,18 +270,21 @@ class FluidTopApp(App):
     Button {{
         margin: 0 1;
         min-width: 12;
-        height: 3;
+        height: 1;
         border: none;
         text-align: center;
     }}
     
     Label {{
         color: {colors['primary']};
+        margin: 0;
+        padding: 0;
     }}
     
     #usage-title, #power-title, #controls-title {{
         text-style: bold;
-        margin-bottom: 1;
+        margin: 0;
+        padding: 0;
     }}
     """
         
