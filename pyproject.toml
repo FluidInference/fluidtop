@@ -5,11 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fluid-top"
 version = "0.0.22"
-description = "Performance monitoring CLI tool for Apple Silicon"
+description = "Resource monitoring for Macs with a focus on AI workloads"
 readme = "README.md"
 license = "MIT"
 authors = [
-    {name = "Timothy Liu", email = "tlkh.xms@gmail.com"}
+    { name = "Fluid Inference", email = "dev@fluidinference.com" },
 ]
 keywords = ["fluidtop", "fluid-top", "apple-silicon", "performance", "monitoring", "m1", "m2"]
 classifiers = [

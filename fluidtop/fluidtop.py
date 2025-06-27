@@ -127,8 +127,7 @@ class FluidTopApp(App):
     }
     
     #controls-buttons {
-        align: right;
-        content-align: right;
+        align: right middle;
     }
     
     Button {
@@ -140,10 +139,12 @@ class FluidTopApp(App):
     }
     """
     
-    def __init__(self, interval: int, color: int, avg: int, show_cores: bool, max_count: int):
+    def __init__(self, interval: int, theme: str, avg: int, show_cores: bool, max_count: int):
         super().__init__()
         self.interval = interval
-        self.color = color
+        self.theme = theme
+        # Apply theme
+        self._apply_theme(theme)
         self.avg = avg
         self.show_cores = show_cores
         self.max_count = max_count
@@ -198,8 +199,7 @@ class FluidTopApp(App):
         
         # Controls section
         with Vertical(id="controls-section"):
-            yield Label("Controls", id="controls-title")
-            with Horizontal():
+            with Horizontal(id="controls-buttons"):
                 yield Button("📸 Screenshot", id="screenshot-btn", variant="primary")
                 yield Button("❌ Quit", id="quit-btn", variant="error")
     
@@ -407,20 +407,18 @@ class FluidTopApp(App):
 @click.command()
 @click.option('--interval', type=int, default=1,
               help='Display interval and sampling interval for powermetrics (seconds)')
-@click.option('--color', type=int, default=2,
-              help='Choose display color (0~8)')
+@click.option('--theme', type=click.Choice(['default', 'blue', 'green', 'red', 'purple', 'orange', 'cyan', 'magenta']), default='blue',
+              help='Choose color theme')
 @click.option('--avg', type=int, default=30,
               help='Interval for averaged values (seconds)')
-@click.option('--show_cores', is_flag=True,
-              help='Choose show cores mode')
 @click.option('--max_count', type=int, default=0,
               help='Max show count to restart powermetrics')
-def main(interval, color, avg, show_cores, max_count):
+def main(interval, theme, avg, show_cores, max_count):
     """fluidtop: Performance monitoring CLI tool for Apple Silicon"""
-    return _main_logic(interval, color, avg, show_cores, max_count)
+    return _main_logic(interval, theme, avg, show_cores, max_count)
 
 
-def _main_logic(interval, color, avg, show_cores, max_count):
+def _main_logic(interval, theme, avg, show_cores, max_count):
     """Main logic using Textual app"""
     print("\nFLUIDTOP - Performance monitoring CLI tool for Apple Silicon")
     print("You can update FLUIDTOP by running `pip install fluid-top --upgrade`")
@@ -428,7 +426,7 @@ def _main_logic(interval, color, avg, show_cores, max_count):
     print("P.S. You are recommended to run FLUIDTOP with `sudo fluidtop`\n")
     
     # Create and run the Textual app
-    app = FluidTopApp(interval, color, avg, show_cores, max_count)
+    app = FluidTopApp(interval, theme, avg, show_cores, max_count)
     try:
         app.run()
     except KeyboardInterrupt:
