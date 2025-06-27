@@ -7,14 +7,13 @@ name = "fluid-top"
 version = "0.0.22"
 description = "Performance monitoring CLI tool for Apple Silicon"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "Timothy Liu", email = "tlkh.xms@gmail.com"}
 ]
 keywords = ["fluidtop", "fluid-top", "apple-silicon", "performance", "monitoring", "m1", "m2"]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: MacOS",
     "Development Status :: 4 - Beta",
     "Environment :: Console",
@@ -26,7 +25,8 @@ classifiers = [
 requires-python = ">=3.8"
 dependencies = [
     "click",
-    "dashing",
+    "textual",
+    "textual-plotext",
     "psutil",
 ]
 
