@@ -163,6 +163,15 @@ def get_soc_info():
     elif soc_info["name"] == "Apple M2":
         soc_info["cpu_max_power"] = 25
         soc_info["gpu_max_power"] = 15
+    elif soc_info["name"] == "Apple M3":
+        soc_info["cpu_max_power"] = 22
+        soc_info["gpu_max_power"] = 13
+    elif soc_info["name"] == "Apple M3 Pro":
+        soc_info["cpu_max_power"] = 37
+        soc_info["gpu_max_power"] = 19
+    elif soc_info["name"] == "Apple M3 Max":
+        soc_info["cpu_max_power"] = 54
+        soc_info["gpu_max_power"] = 47
     else:
         soc_info["cpu_max_power"] = 20
         soc_info["gpu_max_power"] = 20
@@ -182,6 +191,15 @@ def get_soc_info():
     elif soc_info["name"] == "Apple M2":
         soc_info["cpu_max_bw"] = 100
         soc_info["gpu_max_bw"] = 100
+    elif soc_info["name"] == "Apple M3":
+        soc_info["cpu_max_bw"] = 100
+        soc_info["gpu_max_bw"] = 100
+    elif soc_info["name"] == "Apple M3 Pro":
+        soc_info["cpu_max_bw"] = 150
+        soc_info["gpu_max_bw"] = 150
+    elif soc_info["name"] == "Apple M3 Max":
+        soc_info["cpu_max_bw"] = 400
+        soc_info["gpu_max_bw"] = 400
     else:
         soc_info["cpu_max_bw"] = 70
         soc_info["gpu_max_bw"] = 70
