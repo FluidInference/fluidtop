@@ -20,7 +20,7 @@ on:
 
 jobs:
   release:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     environment: release
     permissions:
       contents: write
@@ -78,7 +78,7 @@ jobs:
           echo "New version: $NEW_VERSION"
 
           # Update version in pyproject.toml
-          sed -i '' "s/version = \".*\"/version = \"$NEW_VERSION\"/" pyproject.toml
+          sed -i "s/version = \".*\"/version = \"$NEW_VERSION\"/" pyproject.toml
 
           # Verify the version was updated
           grep "version = \"$NEW_VERSION\"" pyproject.toml || exit 1
@@ -207,7 +207,7 @@ jobs:
           # Install or upgrade via UV  
           uv add fluid-top
 
-          # Run directly with UV
+          # Run directly with UV (on macOS, use sudo)
           sudo uv run fluidtop
           \`\`\`
 
