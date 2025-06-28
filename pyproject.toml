@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fluidtop"
-version = "0.1.0"
+version = "0.1.1"
 description = "Real-time macOS hardware performance monitoring for Apple Silicon (M1/M2/M3/M4) with AI workload focus - enhanced asitop alternative"
 readme = "README.md"
 license = "MIT"
@@ -28,11 +28,10 @@ classifiers = [
     "Operating System :: MacOS",
     "Operating System :: MacOS :: MacOS X",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: System :: Monitoring",
     "Topic :: System :: Hardware",
     "Topic :: System :: Systems Administration",
@@ -40,12 +39,12 @@ classifiers = [
     "Topic :: Software Development :: Debuggers",
     "Topic :: Utilities",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
-    "click",
-    "textual",
-    "textual-plotext",
-    "psutil",
+    "click>=8.2.0",
+    "textual>=3.0.0",
+    "textual-plotext>=1.0.0",
+    "psutil>=7.0.0",
 ]
 
 [project.urls]

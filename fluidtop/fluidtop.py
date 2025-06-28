@@ -158,11 +158,15 @@ class FluidTopApp(App):
     
     def __init__(self, interval: int, theme: str, avg: int, max_count: int):
         self.interval = interval
-        self.theme = theme
-        self.theme_colors = self._get_theme_colors(theme)
+        # Store theme temporarily, don't assign to self.theme yet
+        theme_value = theme
+        self.theme_colors = self._get_theme_colors(theme_value)
         # Apply theme BEFORE calling super().__init__()
-        self._apply_theme(theme)
+        self._apply_theme(theme_value)
         super().__init__()
+        
+        # Store theme value in a regular instance variable (not reactive)
+        self._theme_name = theme_value
         self.avg = avg
         self.max_count = max_count
         
@@ -562,7 +566,6 @@ def main(interval, theme, avg, max_count):
 def _main_logic(interval, theme, avg, max_count):
     """Main logic using Textual app"""
     print("\nFLUIDTOP - Performance monitoring CLI tool for Apple Silicon")
-    print("You can update FLUIDTOP by running `pip install fluidtop --upgrade`")
     print("Get help at `https://github.com/FluidInference/fluidtop`")
     print("P.S. You are recommended to run FLUIDTOP with `sudo fluidtop`\n")
     

@@ -41,16 +41,20 @@ FluidTop is a Python-based `nvtop`-inspired command line tool specifically desig
 ### Quick Start with UV (Recommended)
 
 ```bash
-git clone https://github.com/FluidInference/fluidtop
-
-# Install UV package manager
+# Install UV package manager (if not already installed)
 curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
-# Run FluidTop directly without installation
-cd fluidtop && sudo uv run fluidtop
+```bash
+# Run FluidTop directly without installation (one-time usage)
+sudo uvx fluidtop
 
 # Run with custom options
-sudo uv run fluidtop --interval 2 --color 5 --avg 60
+sudo uvx fluidtop --interval 2 --color 5 --avg 60
+
+# Or install for regular usage
+uv add fluidtop
+sudo fluidtop
 ```
 
 ### Install from PyPI
@@ -58,9 +62,6 @@ sudo uv run fluidtop --interval 2 --color 5 --avg 60
 ```bash
 # Install with pip
 pip install fluidtop
-
-# Install with UV
-uv add fluidtop
 
 # Run after installation
 sudo fluidtop
