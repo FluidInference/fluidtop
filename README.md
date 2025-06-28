@@ -34,6 +34,11 @@ sudo uv tool run fluidtop
 ```
 
 ```bash
+# to update fluidtop
+uv tool install fluidtop@latest -U
+```
+
+```bash
 # Run with custom options
 sudo uvx fluidtop --interval 2 --color 5 --avg 60
 ```
