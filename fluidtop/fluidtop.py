@@ -562,7 +562,7 @@ def main(interval, theme, avg, max_count):
 def _main_logic(interval, theme, avg, max_count):
     """Main logic using Textual app"""
     print("\nFLUIDTOP - Performance monitoring CLI tool for Apple Silicon")
-    print("You can update FLUIDTOP by running `pip install fluid-top --upgrade`")
+    print("You can update FLUIDTOP by running `pip install fluidtop --upgrade`")
     print("Get help at `https://github.com/FluidInference/fluidtop`")
     print("P.S. You are recommended to run FLUIDTOP with `sudo fluidtop`\n")
     

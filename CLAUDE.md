@@ -50,7 +50,7 @@ sudo uv run fluidtop
 uv pip install -e .
 
 # Install from PyPI
-uv pip install fluid-top
+uv pip install fluidtop
 
 # Create and activate virtual environment (optional)
 uv venv
@@ -67,7 +67,7 @@ uv pip install -e .
 pip install -e .
 
 # Install from PyPI
-pip install fluid-top
+pip install fluidtop
 ```
 
 ### Running the Application

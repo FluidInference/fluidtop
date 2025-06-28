@@ -148,7 +148,7 @@ jobs:
 
           # Check if package is available on PyPI
           for i in {1..10}; do
-            if pip index versions fluid-top | grep -q "$NEW_VERSION"; then
+            if pip index versions fluidtop | grep -q "$NEW_VERSION"; then
               echo "✅ Package version $NEW_VERSION found on PyPI"
               echo "pypi_verified=true" >> $GITHUB_OUTPUT
               break
@@ -174,7 +174,7 @@ jobs:
           source test_env/bin/activate
 
           # Install from PyPI
-          pip install "fluid-top==$NEW_VERSION"
+          pip install "fluidtop==$NEW_VERSION"
 
           # Test that it works
           echo "Testing fluidtop --help (without sudo in CI)"
@@ -217,10 +217,10 @@ jobs:
 
           \`\`\`bash
           # Install or upgrade via pip
-          pip install fluid-top --upgrade
+          pip install fluidtop --upgrade
 
           # Install or upgrade via UV  
-          uv add fluid-top
+          uv add fluidtop
 
           # Run directly with UV (on macOS, use sudo)
           sudo uv run fluidtop
@@ -235,7 +235,7 @@ jobs:
 
           ## 🏷️ Package Information
 
-          - **PyPI:** https://pypi.org/project/fluid-top/$NEW_VERSION/
+          - **PyPI:** https://pypi.org/project/fluidtop/$NEW_VERSION/
           - **Wheel:** \`fluid_top-$NEW_VERSION-py3-none-any.whl\`
           - **Source:** \`fluid_top-$NEW_VERSION.tar.gz\`
 
@@ -277,9 +277,9 @@ jobs:
           echo "- [x] Created GitHub release" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔗 Links" >> $GITHUB_STEP_SUMMARY
-          echo "- **PyPI Package:** https://pypi.org/project/fluid-top/$NEW_VERSION/" >> $GITHUB_STEP_SUMMARY
+          echo "- **PyPI Package:** https://pypi.org/project/fluidtop/$NEW_VERSION/" >> $GITHUB_STEP_SUMMARY
           echo "- **GitHub Release:** https://github.com/FluidInference/fluidtop/releases/tag/v$NEW_VERSION" >> $GITHUB_STEP_SUMMARY
-          echo "- **Install Command:** \`pip install fluid-top==$NEW_VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Install Command:** \`pip install fluidtop==$NEW_VERSION\`" >> $GITHUB_STEP_SUMMARY
 
       - name: ❌ Failure Summary
         if: failure()

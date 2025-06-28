@@ -1,6 +1,6 @@
 # FluidTop - Apple Silicon Performance Monitor
 
-[![PyPI version](https://badge.fury.io/py/fluid-top.svg)](https://badge.fury.io/py/fluid-top)
+[![PyPI version](https://badge.fury.io/py/fluidtop.svg)](https://badge.fury.io/py/fluidtop)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![macOS](https://img.shields.io/badge/macOS-Monterey%2B-green.svg)](https://www.apple.com/macos/)
 [![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-M1%2FM2%2FM3%2FM4-orange.svg)](https://www.apple.com/mac/)
@@ -55,10 +55,10 @@ sudo uv run fluidtop --interval 2 --color 5 --avg 60 --show_cores true
 
 ```bash
 # Install with pip
-pip install fluid-top
+pip install fluidtop
 
 # Install with UV
-uv add fluid-top
+uv add fluidtop
 
 # Run after installation
 sudo fluidtop
@@ -225,7 +225,7 @@ The automated release workflow (`.github/workflows/release.yml`) includes:
 
 **For Repository Maintainers:**
 
-1. **PyPI Trusted Publishing**: Configure at https://pypi.org/manage/project/fluid-top/settings/publishing/
+1. **PyPI Trusted Publishing**: Configure at https://pypi.org/manage/project/fluidtop/settings/publishing/
    - Publisher: `FluidInference/fluidtop`
    - Workflow: `release.yml`
    - Environment: (leave empty)
