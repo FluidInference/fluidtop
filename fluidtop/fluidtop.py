@@ -182,6 +182,9 @@ class FluidTopApp(App):
         self.ane_peak_power = 0
         self.package_peak_power = 0
         
+        # Total energy consumption tracking (in watt-seconds)
+        self.total_energy_consumed = 0
+        
         # Powermetrics process
         self.powermetrics_process = None
         self.timecode = None
@@ -463,6 +466,9 @@ class FluidTopApp(App):
         self.avg_gpu_power_list.append(gpu_power_W)
         self.avg_ane_power_list.append(ane_power_W)
         
+        # Update total energy consumption (watts * seconds = watt-seconds)
+        self.total_energy_consumed += package_power_W * self.interval
+        
         avg_package_power = sum(self.avg_package_power_list) / len(self.avg_package_power_list)
         avg_cpu_power = sum(self.avg_cpu_power_list) / len(self.avg_cpu_power_list)
         avg_gpu_power = sum(self.avg_gpu_power_list) / len(self.avg_gpu_power_list)
@@ -471,19 +477,19 @@ class FluidTopApp(App):
         # Update charts
         cpu_power_chart = self.query_one("#cpu-power-chart", PowerChart)
         cpu_power_percent = int(cpu_power_W / cpu_max_power * 100)
-        cpu_title = f"CPU: {cpu_power_W:.2f}W (avg: {avg_cpu_power:.2f}W peak: {self.cpu_peak_power:.2f}W)"
+        cpu_title = f"CPU: {cpu_power_W:.2f}W (avg: {avg_cpu_power:.2f}W | peak: {self.cpu_peak_power:.2f}W)"
         cpu_power_chart.update_title(cpu_title)
         cpu_power_chart.add_data(cpu_power_percent)
         
         gpu_power_chart = self.query_one("#gpu-power-chart", PowerChart)
         gpu_power_percent = int(gpu_power_W / gpu_max_power * 100)
-        gpu_title = f"GPU: {gpu_power_W:.2f}W (avg: {avg_gpu_power:.2f}W peak: {self.gpu_peak_power:.2f}W)"
+        gpu_title = f"GPU: {gpu_power_W:.2f}W (avg: {avg_gpu_power:.2f}W | peak: {self.gpu_peak_power:.2f}W)"
         gpu_power_chart.update_title(gpu_title)
         gpu_power_chart.add_data(gpu_power_percent)
         
         ane_power_chart = self.query_one("#ane-power-chart", PowerChart)
         ane_power_percent = int(ane_power_W / ane_max_power * 100)
-        ane_title = f"ANE: {ane_power_W:.2f}W (avg: {avg_ane_power:.2f}W peak: {self.ane_peak_power:.2f}W)"
+        ane_title = f"ANE: {ane_power_W:.2f}W (avg: {avg_ane_power:.2f}W | peak: {self.ane_peak_power:.2f}W)"
         ane_power_chart.update_title(ane_title)
         ane_power_chart.add_data(ane_power_percent)
         
@@ -491,12 +497,26 @@ class FluidTopApp(App):
         total_max_power = cpu_max_power + gpu_max_power + ane_max_power
         total_power_percent = int(package_power_W / total_max_power * 100)
         thermal_throttle = "no" if thermal_pressure == "Nominal" else "yes"
-        total_title = f"Total: {package_power_W:.2f}W (avg: {avg_package_power:.2f}W peak: {self.package_peak_power:.2f}W) throttle: {thermal_throttle}"
+        
+        total_title = f"Total: {package_power_W:.2f}W (avg: {avg_package_power:.2f}W | peak: {self.package_peak_power:.2f}W)"
         total_power_chart.update_title(total_title)
         total_power_chart.add_data(total_power_percent)
         
         # Update power section title
-        power_title = f"CPU+GPU+ANE Power: {package_power_W:.2f}W (avg: {avg_package_power:.2f}W peak: {self.package_peak_power:.2f}W) throttle: {thermal_throttle}"
+        # Convert total energy from watt-seconds to watt-hours for display
+        total_energy_wh = self.total_energy_consumed / 3600  # 3600 seconds = 1 hour
+        
+        if total_energy_wh < 1.0:
+            # Show in milliwatt-hours for very small values
+            energy_display = f"{total_energy_wh * 1000:.1f}mWh"
+        elif total_energy_wh < 1000:
+            # Show in watt-hours for normal values
+            energy_display = f"{total_energy_wh:.2f}Wh"
+        else:
+            # Show in kilowatt-hours for large values
+            energy_display = f"{total_energy_wh / 1000:.3f}kWh"
+        
+        power_title = f"Power: {package_power_W:.2f}W (avg: {avg_package_power:.2f}W | peak: {self.package_peak_power:.2f}W) | total over time: {energy_display} | throttle: {thermal_throttle}"
         self.query_one("#power-title", Label).update(power_title)
     
     async def on_button_pressed(self, event: Button.Pressed) -> None:
