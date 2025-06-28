@@ -52,9 +52,9 @@ sudo uvx fluidtop
 # Run with custom options
 sudo uvx fluidtop --interval 2 --color 5 --avg 60
 
-# Or install for regular usage
-uv add fluidtop
-sudo fluidtop
+# Or install as a tool for regular usages
+uv tool install parakeet-mlx -U
+sudo uv tool run fluidtop
 ```
 
 ### Install from PyPI
