@@ -117,7 +117,7 @@ jobs:
           uv run fluidtop --help
 
           # Verify the version in the built package
-          if ls dist/fluid_top-${NEW_VERSION}-*.whl 1> /dev/null 2>&1; then
+          if ls dist/fluidtop-${NEW_VERSION}-*.whl 1> /dev/null 2>&1; then
             echo "✅ Wheel file with correct version found"
           else
             echo "❌ Wheel file with version $NEW_VERSION not found"
@@ -125,7 +125,7 @@ jobs:
             exit 1
           fi
 
-          if ls dist/fluid_top-${NEW_VERSION}.tar.gz 1> /dev/null 2>&1; then
+          if ls dist/fluidtop-${NEW_VERSION}.tar.gz 1> /dev/null 2>&1; then
             echo "✅ Source distribution with correct version found"
           else
             echo "❌ Source distribution with version $NEW_VERSION not found"  
@@ -236,8 +236,8 @@ jobs:
           ## 🏷️ Package Information
 
           - **PyPI:** https://pypi.org/project/fluidtop/$NEW_VERSION/
-          - **Wheel:** \`fluid_top-$NEW_VERSION-py3-none-any.whl\`
-          - **Source:** \`fluid_top-$NEW_VERSION.tar.gz\`
+          - **Wheel:** \`fluidtop-$NEW_VERSION-py3-none-any.whl\`
+          - **Source:** \`fluidtop-$NEW_VERSION.tar.gz\`
 
           ---
 
