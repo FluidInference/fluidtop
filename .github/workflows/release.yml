@@ -281,19 +281,6 @@ jobs:
           echo "- **GitHub Release:** https://github.com/FluidInference/fluidtop/releases/tag/v$NEW_VERSION" >> $GITHUB_STEP_SUMMARY
           echo "- **Install Command:** \`pip install fluid-top==$NEW_VERSION\`" >> $GITHUB_STEP_SUMMARY
 
-      # Rollback section - only runs if PyPI publish succeeded but later steps failed
-      - name: 🔄 Rollback: Revert git changes
-        if: failure() && steps.pypi_publish.outcome == 'success'
-        run: |
-          echo "⚠️ Rolling back git changes due to failure after successful PyPI publish"
-          
-          # Reset pyproject.toml to original version
-          git checkout HEAD -- pyproject.toml
-          echo "✅ Reverted pyproject.toml to original version"
-          
-          echo "❌ Release failed after PyPI publication. Manual cleanup may be required."
-          echo "Published version $NEW_VERSION is available on PyPI but git was not tagged."
-
       - name: ❌ Failure Summary
         if: failure()
         run: |
