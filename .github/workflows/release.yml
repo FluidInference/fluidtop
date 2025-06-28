@@ -114,7 +114,7 @@ jobs:
           echo "🧪 Testing package build..."
 
           # Test that the package can be imported and help works
-          sudo uv run fluidtop --help
+          uv run fluidtop --help
 
           # Verify the version in the built package
           if ls dist/fluid_top-${NEW_VERSION}-*.whl 1> /dev/null 2>&1; then
