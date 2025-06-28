@@ -540,22 +540,12 @@ class FluidTopApp(App):
             # Save screenshot as SVG (textual's built-in screenshot format)
             self.save_screenshot(screenshot_path)
             
-            # Update controls title to show success
-            controls_title = self.query_one("#controls-title", Label)
-            original_text = "Controls"
-            controls_title.update(f"✅ Screenshot saved to {screenshot_path}")
-            
-            # Reset title after 3 seconds
-            self.set_timer(3.0, lambda: controls_title.update(original_text))
+            # Show success notification
+            self.notify(f"Screenshot saved to {screenshot_path}", title="Screenshot Success", severity="information")
             
         except Exception as e:
-            # Update controls title to show error
-            controls_title = self.query_one("#controls-title", Label)
-            original_text = "Controls"
-            controls_title.update(f"❌ Screenshot failed: {str(e)}")
-            
-            # Reset title after 3 seconds
-            self.set_timer(3.0, lambda: controls_title.update(original_text))
+            # Show error notification
+            self.notify(f"Screenshot failed: {str(e)}", title="Screenshot Error", severity="error")
     
     async def quit_application(self) -> None:
         """Gracefully quit the application"""
