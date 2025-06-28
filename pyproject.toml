@@ -58,6 +58,9 @@ Changelog = "https://github.com/FluidInference/fluidtop/releases"
 [project.scripts]
 fluidtop = "fluidtop.fluidtop:main"
 
+[tool.hatch.build.targets.wheel]
+packages = ["fluidtop"]
+
 [tool.uv]
 dev-dependencies = []
 

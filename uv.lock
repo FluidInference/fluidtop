@@ -24,7 +24,7 @@ wheels = [
 
 [[package]]
 name = "fluid-top"
-version = "0.0.22"
+version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
