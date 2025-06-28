@@ -279,7 +279,13 @@ class FluidTopApp(App):
     }}
     
     #controls-buttons {{
-        align: right middle;
+        align: left middle;
+    }}
+    
+    #timestamp-label {{
+        width: 1fr;
+        text-align: left;
+        color: {colors['accent']};
     }}
     
     Button {{
@@ -329,6 +335,7 @@ class FluidTopApp(App):
         # Controls section
         with Vertical(id="controls-section"):
             with Horizontal(id="controls-buttons"):
+                yield Label("", id="timestamp-label")
                 yield Button("📸 Screenshot", id="screenshot-btn", variant="primary")
                 yield Button("❌ Quit", id="quit-btn", variant="error")
     
@@ -349,6 +356,9 @@ class FluidTopApp(App):
         # Update usage title with device info
         cpu_title = f"{self.soc_info_dict['name']} (cores: {self.soc_info_dict['e_core_count']}E+{self.soc_info_dict['p_core_count']}P+{self.soc_info_dict['gpu_core_count']}GPU)"
         self.query_one("#usage-title", Label).update(cpu_title)
+        
+        # Initialize timestamp
+        await self.update_timestamp()
     
     async def wait_for_first_reading(self):
         """Wait for the first powermetrics reading"""
@@ -391,6 +401,9 @@ class FluidTopApp(App):
             
             # Update power charts
             await self.update_power_charts(cpu_metrics_dict, thermal_pressure)
+            
+            # Update timestamp
+            await self.update_timestamp()
             
         except Exception as e:
             # Handle errors gracefully
@@ -518,6 +531,12 @@ class FluidTopApp(App):
         
         power_title = f"Power: {package_power_W:.2f}W (avg: {avg_package_power:.2f}W | peak: {self.package_peak_power:.2f}W) | total over time: {energy_display} | throttle: {thermal_throttle}"
         self.query_one("#power-title", Label).update(power_title)
+    
+    async def update_timestamp(self):
+        """Update the timestamp display"""
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp_label = self.query_one("#timestamp-label", Label)
+        timestamp_label.update(f"📅 {current_time}")
     
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button press events"""

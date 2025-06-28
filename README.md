@@ -154,6 +154,16 @@ sudo asitop
 sudo fluidtop
 ```
 
+## 📚 Documentation
+
+For detailed information, troubleshooting, and frequently asked questions, see our comprehensive [FAQ](docs/FAQ.md) which covers:
+
+- **Apple Silicon Architecture**: Understanding E-CPU vs P-CPU cores
+- **System Requirements**: Supported chips and compatibility  
+- **Monitoring Details**: Power accuracy, Neural Engine tracking, and more
+- **Troubleshooting**: Common issues and solutions
+- **Migration Guide**: Differences from asitop and compatibility
+
 ## 🗺️ Roadmap & Development
 
 ### Completed Features
