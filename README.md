@@ -41,14 +41,16 @@ FluidTop is a Python-based `nvtop`-inspired command line tool specifically desig
 ### Quick Start with UV (Recommended)
 
 ```bash
+git clone https://github.com/FluidInference/fluidtop
+
 # Install UV package manager
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Run FluidTop directly without installation
-sudo uv run fluidtop
+cd fluidtop && sudo uv run fluidtop
 
 # Run with custom options
-sudo uv run fluidtop --interval 2 --color 5 --avg 60 --show_cores true
+sudo uv run fluidtop --interval 2 --color 5 --avg 60
 ```
 
 ### Install from PyPI
@@ -125,26 +127,10 @@ FluidTop leverages macOS's built-in [`powermetrics`](https://www.unix.com/man-pa
 * **Python:** Python 3.8+ (automatically managed with UV)
 * **Privileges:** Root access required for `powermetrics`
 
-## 🆚 FluidTop vs Alternatives
-
-| Feature | FluidTop | asitop | Activity Monitor | htop |
-|---------|----------|--------|------------------|------|
-| Apple Silicon Optimized | ✅ | ⚠️ | ✅ | ❌ |
-| Neural Engine Monitoring | ✅ | ❌ | ❌ | ❌ |
-| GPU Memory Tracking | ✅ | ✅ | ⚠️ | ❌ |
-| AI Workload Detection | ✅ | ❌ | ❌ | ❌ |
-| Terminal Compatibility | ✅ | ⚠️ | ❌ | ✅ |
-| Real-time Power Monitoring | ✅ | ✅ | ⚠️ | ❌ |
-| Individual Core Tracking | ✅ | ✅ | ❌ | ⚠️ |
-| Active Development | ✅ | ❌ | ✅ | ✅ |
-
-## 🔄 Project History & Attribution
-
-FluidTop is an enhanced fork of the original [asitop](https://github.com/tlkh/asitop) project by Timothy Liu. We maintain full compatibility while adding modern features and hardware support.
-
 ### Why Fork asitop?
 
 The original `asitop` provided excellent Apple Silicon monitoring but lacked:
+
 - **Modern hardware support** - M3, M4+ compatibility
 - **Terminal compatibility** - Ghostty and modern terminal optimization  
 - **AI workload focus** - Machine learning specific monitoring
@@ -171,68 +157,16 @@ sudo fluidtop
 - ✅ PyPI publishing and UV integration
 
 ### In Development
-- 🔄 Advanced AI workload monitoring and detection
-- 🔄 Custom monitoring profiles for different use cases
+- 🔄 monitor a specific process/application
+- 🔄 GUI-less monitoring and data collection
 - 🔄 Performance data export capabilities (CSV, JSON)
-- 🔄 Integration with popular ML frameworks (PyTorch, TensorFlow)
-
-### Planned Features
-- 📋 Web dashboard for remote monitoring
-- 📋 Historical performance data analysis
-- 📋 Alerting and notification system
-- 📋 Plugin architecture for extensibility
+- API interface for other Python services
 
 ## 🛠️ Development & Publishing
 
 ### Automated Release Process
 
 FluidTop uses GitHub Actions to automate the entire release process. No manual steps required!
-
-#### 🚀 Creating a New Release
-
-1. **Go to GitHub Actions**: Navigate to the [Actions tab](https://github.com/FluidInference/fluidtop/actions)
-2. **Select "Release to PyPI"** workflow
-3. **Click "Run workflow"**
-4. **Enter the version** (e.g., `0.2.0`)
-5. **Choose whether to create GitHub release** (default: yes)
-6. **Click "Run workflow"**
-
-That's it! The workflow will automatically:
-
-✅ **Update version** in `pyproject.toml`  
-✅ **Build the package** using UV  
-✅ **Test the build** with `sudo uv run fluidtop --help`  
-✅ **Create and push git tag**  
-✅ **Publish to PyPI** using trusted publishing  
-✅ **Verify PyPI publication**  
-✅ **Test PyPI installation**  
-✅ **Create GitHub release** with auto-generated notes  
-✅ **Attach distribution files** to the release  
-
-#### 🔧 What the Workflow Does
-
-The automated release workflow (`.github/workflows/release.yml`) includes:
-
-- **Version Management**: Updates `pyproject.toml` with the specified version
-- **Build & Test**: Uses UV to build and test the package on macOS
-- **PyPI Publishing**: Uses PyPI trusted publishing (no API tokens needed)
-- **Git Tagging**: Creates and pushes version tags automatically
-- **GitHub Releases**: Creates releases with changelog and artifacts
-- **Verification**: Tests that the published package installs correctly
-- **Summary**: Provides a detailed summary of all completed tasks
-
-#### 🔑 Setup Requirements
-
-**For Repository Maintainers:**
-
-1. **PyPI Trusted Publishing**: Configure at https://pypi.org/manage/project/fluidtop/settings/publishing/
-   - Publisher: `FluidInference/fluidtop`
-   - Workflow: `release.yml`
-   - Environment: (leave empty)
-
-2. **Repository Permissions**: Ensure GitHub Actions has:
-   - `contents: write` (for creating releases and tags)
-   - `id-token: write` (for PyPI trusted publishing)
 
 #### 🧪 Development Workflow
 
@@ -254,17 +188,6 @@ uv build
 sudo uv run fluidtop --help  # Verify build works
 ```
 
-#### 📋 Manual Release (Fallback)
-
-If the automated workflow fails, you can still release manually:
-
-```bash
-# Update version in pyproject.toml
-# Build and upload
-uv build
-uv tool install twine
-twine upload dist/* --username __token__ --password [your-api-token]
-```
 
 ## 🐛 Known Issues & Contributing
 
@@ -274,8 +197,6 @@ twine upload dist/* --username __token__ --password [your-api-token]
 - Long-running sessions may require periodic restart
 
 ### Contributing
-We welcome contributions! Please see our [contribution guidelines](https://github.com/FluidInference/fluidtop/blob/main/CONTRIBUTING.md) and feel free to:
-
 - Report bugs and request features via [GitHub Issues](https://github.com/FluidInference/fluidtop/issues)
 - Submit pull requests for bug fixes and improvements
 - Improve documentation and examples
