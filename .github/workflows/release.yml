@@ -42,7 +42,8 @@ jobs:
         with:
           enable-cache: true
 
-      - name: 📝 Calculate and update version in pyproject.toml
+      - name: 📝 Calculate new version
+        id: version
         run: |
           BUMP_TYPE="${{ github.event.inputs.bump_type }}"
           echo "Bump type: $BUMP_TYPE"
@@ -75,17 +76,22 @@ jobs:
           esac
 
           NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-          echo "New version: $NEW_VERSION"
+          echo "New version will be: $NEW_VERSION"
 
-          # Update version in pyproject.toml
+          # Store versions for later use
+          echo "CURRENT_VERSION=$CURRENT_VERSION" >> $GITHUB_ENV
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: 📝 Update version in pyproject.toml (local only)
+        run: |
+          # Update version in pyproject.toml locally (don't commit yet)
           sed -i "s/version = \".*\"/version = \"$NEW_VERSION\"/" pyproject.toml
 
           # Verify the version was updated
           grep "version = \"$NEW_VERSION\"" pyproject.toml || exit 1
-          echo "✅ Version updated from $CURRENT_VERSION to $NEW_VERSION"
-
-          # Set as environment variable for subsequent steps
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "✅ Version updated locally from $CURRENT_VERSION to $NEW_VERSION"
 
       - name: 🧹 Clean previous builds
         run: |
@@ -127,28 +133,15 @@ jobs:
             exit 1
           fi
 
-      - name: 🏷️ Create and push git tag
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Commit version change
-          git add pyproject.toml
-          git commit -m "🔖 Bump version to $NEW_VERSION"
-
-          # Create and push tag
-          git tag "v$NEW_VERSION"
-          git push origin main
-          git push origin "v$NEW_VERSION"
-          echo "✅ Git tag v$NEW_VERSION created and pushed"
-
       - name: 📦 Publish to PyPI
+        id: pypi_publish
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           print-hash: true
           verbose: true
 
       - name: ✅ Verify PyPI publication
+        id: verify_pypi
         run: |
           echo "⏳ Waiting for PyPI to update..."
           sleep 30
@@ -157,6 +150,7 @@ jobs:
           for i in {1..10}; do
             if pip index versions fluid-top | grep -q "$NEW_VERSION"; then
               echo "✅ Package version $NEW_VERSION found on PyPI"
+              echo "pypi_verified=true" >> $GITHUB_OUTPUT
               break
             else
               echo "⏳ Attempt $i: Package not yet available, waiting..."
@@ -165,11 +159,13 @@ jobs:
             
             if [ $i -eq 10 ]; then
               echo "❌ Package not found on PyPI after 5 minutes"
+              echo "pypi_verified=false" >> $GITHUB_OUTPUT
               exit 1
             fi
           done
 
       - name: 🧪 Test PyPI installation
+        if: steps.verify_pypi.outputs.pypi_verified == 'true'
         run: |
           echo "🧪 Testing installation from PyPI..."
 
@@ -189,7 +185,26 @@ jobs:
           rm -rf test_env
           echo "✅ PyPI installation test passed"
 
+      - name: 🏷️ Create and push git tag
+        if: steps.verify_pypi.outputs.pypi_verified == 'true'
+        id: git_tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Commit version change
+          git add pyproject.toml
+          git commit -m "🔖 Bump version to $NEW_VERSION"
+
+          # Create and push tag
+          git tag "v$NEW_VERSION"
+          git push origin main
+          git push origin "v$NEW_VERSION"
+          echo "✅ Git tag v$NEW_VERSION created and pushed"
+          echo "git_tagged=true" >> $GITHUB_OUTPUT
+
       - name: 📋 Generate release notes
+        if: steps.git_tag.outputs.git_tagged == 'true'
         run: |
           cat > release_notes.md << EOF
           # FluidTop v$NEW_VERSION
@@ -230,7 +245,7 @@ jobs:
           EOF
 
       - name: 🎉 Create GitHub Release
-        if: ${{ github.event.inputs.create_github_release == 'true' }}
+        if: ${{ github.event.inputs.create_github_release == 'true' && steps.git_tag.outputs.git_tagged == 'true' }}
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ env.NEW_VERSION }}
@@ -246,6 +261,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🎊 Release Summary
+        if: steps.git_tag.outputs.git_tagged == 'true'
         run: |
           echo "## 🎉 Release v$NEW_VERSION Complete! " >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -254,13 +270,40 @@ jobs:
           echo "- [x] Updated version in pyproject.toml" >> $GITHUB_STEP_SUMMARY
           echo "- [x] Built distribution packages" >> $GITHUB_STEP_SUMMARY  
           echo "- [x] Tested package build" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] Created and pushed git tag v$NEW_VERSION" >> $GITHUB_STEP_SUMMARY
           echo "- [x] Published to PyPI" >> $GITHUB_STEP_SUMMARY
           echo "- [x] Verified PyPI publication" >> $GITHUB_STEP_SUMMARY
           echo "- [x] Tested PyPI installation" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] Created and pushed git tag v$NEW_VERSION" >> $GITHUB_STEP_SUMMARY
           echo "- [x] Created GitHub release" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔗 Links" >> $GITHUB_STEP_SUMMARY
           echo "- **PyPI Package:** https://pypi.org/project/fluid-top/$NEW_VERSION/" >> $GITHUB_STEP_SUMMARY
           echo "- **GitHub Release:** https://github.com/FluidInference/fluidtop/releases/tag/v$NEW_VERSION" >> $GITHUB_STEP_SUMMARY
           echo "- **Install Command:** \`pip install fluid-top==$NEW_VERSION\`" >> $GITHUB_STEP_SUMMARY
+
+      # Rollback section - only runs if PyPI publish succeeded but later steps failed
+      - name: 🔄 Rollback: Revert git changes
+        if: failure() && steps.pypi_publish.outcome == 'success'
+        run: |
+          echo "⚠️ Rolling back git changes due to failure after successful PyPI publish"
+          
+          # Reset pyproject.toml to original version
+          git checkout HEAD -- pyproject.toml
+          echo "✅ Reverted pyproject.toml to original version"
+          
+          echo "❌ Release failed after PyPI publication. Manual cleanup may be required."
+          echo "Published version $NEW_VERSION is available on PyPI but git was not tagged."
+
+      - name: ❌ Failure Summary
+        if: failure()
+        run: |
+          echo "## ❌ Release v$NEW_VERSION Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The release process encountered an error. Check the logs above for details." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ steps.pypi_publish.outcome }}" == "success" ]]; then
+            echo "⚠️ **Note:** Package was successfully published to PyPI but git tagging failed." >> $GITHUB_STEP_SUMMARY
+            echo "You may need to manually create the git tag or handle the published package." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ No changes were committed to git since PyPI publication failed." >> $GITHUB_STEP_SUMMARY
+          fi
