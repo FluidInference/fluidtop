@@ -12,30 +12,6 @@ FluidTop is a Python-based `nvtop`-inspired command line tool specifically desig
 
 ![View animated demo (GIF)](https://raw.githubusercontent.com/FluidInference/fluidtop/main/images/live.gif)
 
-![View static screenshot (PNG)](https://raw.githubusercontent.com/FluidInference/fluidtop/main/images/pic.png)
-
-## 🚀 Key Features & Capabilities
-
-### Hardware Monitoring
-* **Real-time CPU monitoring** - Individual core utilization and frequency tracking
-* **GPU performance tracking** - Apple GPU usage, memory, and power consumption  
-* **Neural Engine (ANE) monitoring** - AI/ML workload detection and utilization
-* **Memory bandwidth monitoring** - RAM, swap, and high-bandwidth memory tracking
-* **Power consumption analysis** - CPU/GPU power draw with thermal throttling detection
-* **Temperature monitoring** - System thermal state and throttling alerts
-
-### Apple Silicon Support
-* **Complete Apple Silicon coverage** - M1, M2, M3, M4, and future chip support
-* **Optimized for modern terminals** - Enhanced Ghostty compatibility and performance
-* **Hardware-specific metrics** - TDP and bandwidth specifications for all variants
-* **Individual core monitoring** - Detailed per-core performance and efficiency tracking
-
-### AI & Machine Learning Focus
-* **AI workload detection** - Specialized monitoring for machine learning tasks
-* **Neural Engine utilization** - Track AI inference and training workloads
-* **Memory bandwidth optimization** - Critical for large model performance
-* **Future ML framework integration** - Planned support for popular AI libraries
-
 ## 📦 Installation & Usage
 
 ### Quick Start with UV (Recommended)
@@ -71,6 +47,28 @@ pip install fluidtop
 # Run after installation
 sudo fluidtop
 ```
+
+## 🚀 Key Features & Capabilities
+
+### Hardware Monitoring
+* **Real-time CPU monitoring** - Individual core utilization and frequency tracking
+* **GPU performance tracking** - Apple GPU usage, memory, and power consumption  
+* **Neural Engine (ANE) monitoring** - AI/ML workload detection and utilization
+* **Memory bandwidth monitoring** - RAM, swap, and high-bandwidth memory tracking
+* **Power consumption analysis** - CPU/GPU power draw with thermal throttling detection
+* **Temperature monitoring** - System thermal state and throttling alerts
+
+### Apple Silicon Support
+* **Complete Apple Silicon coverage** - M1, M2, M3, M4, and future chip support
+* **Optimized for modern terminals** - Enhanced Ghostty compatibility and performance
+* **Hardware-specific metrics** - TDP and bandwidth specifications for all variants
+* **Individual core monitoring** - Detailed per-core performance and efficiency tracking
+
+### AI & Machine Learning Focus
+* **AI workload detection** - Specialized monitoring for machine learning tasks
+* **Neural Engine utilization** - Track AI inference and training workloads
+* **Memory bandwidth optimization** - Critical for large model performance
+* **Future ML framework integration** - Planned support for popular AI libraries
 
 ### Development Installation
 
