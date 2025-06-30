@@ -56,6 +56,8 @@ class PowerChart(PlotextPlot):
         # Set auto_theme to False to prevent overriding custom colors
         self.auto_theme = False
         self.plt.plotsize(None, None)  # Auto-size
+        # Set Y-axis decimal precision
+        self.plt.yfrequency(0)  # This will auto-determine the frequency
     
     def add_data(self, value: float):
         current_time = time.time()
@@ -71,6 +73,19 @@ class PowerChart(PlotextPlot):
             
             # Use RGB color for plotting
             self.plt.plot(time_diffs, list(self.data_points), marker="braille", color=self.plot_color)
+            
+            # Set y-axis ticks with one decimal
+            y_min = min(self.data_points)
+            y_max = max(self.data_points)
+            if y_max - y_min > 0.1:
+                # Create 5 evenly spaced y-ticks
+                y_ticks = []
+                y_labels = []
+                for i in range(5):
+                    val = y_min + (y_max - y_min) * i / 4
+                    y_ticks.append(val)
+                    y_labels.append(f"{val:.1f}")
+                self.plt.yticks(y_ticks, y_labels)
             
             # Set x-axis labels - show actual time values
             if len(time_diffs) >= 5:
@@ -115,6 +130,8 @@ class UsageChart(PlotextPlot):
         # Set auto_theme to False to prevent overriding custom colors
         self.auto_theme = False
         self.plt.plotsize(None, None)  # Auto-size
+        # Set Y-axis decimal precision
+        self.plt.yfrequency(0)  # This will auto-determine the frequency
     
     def add_data(self, value: float):
         current_time = time.time()
@@ -130,6 +147,11 @@ class UsageChart(PlotextPlot):
             
             # Use RGB color for plotting
             self.plt.plot(time_diffs, list(self.data_points), marker="braille", color=self.plot_color)
+            
+            # Set y-axis ticks with one decimal for usage (0-100)
+            y_ticks = [0, 25, 50, 75, 100]
+            y_labels = [f"{val:.1f}" for val in y_ticks]
+            self.plt.yticks(y_ticks, y_labels)
             
             # Set x-axis labels - show actual time values
             if len(time_diffs) >= 5:
@@ -229,6 +251,17 @@ class FluidTopApp(App):
             colors = themes[theme]
             # Update CSS with theme colors and reduced padding
             self.CSS = f"""
+    Screen {{
+        layers: base;
+        overflow: hidden hidden;
+    }}
+    
+    Screen > Container {{
+        width: 100%;
+        height: 100%;
+        overflow: hidden hidden;
+    }}
+    
     MetricGauge {{
         height: 3;
         margin: 0;
@@ -238,7 +271,7 @@ class FluidTopApp(App):
     PowerChart {{
         height: 1fr;
         margin: 0;
-        border: solid {colors['primary']};
+        border: none;
         background: $surface;
     }}
     
@@ -249,7 +282,7 @@ class FluidTopApp(App):
     UsageChart {{
         height: 1fr;
         margin: 0;
-        border: solid {colors['primary']};
+        border: none;
         background: $surface;
     }}
     
@@ -273,36 +306,65 @@ class FluidTopApp(App):
     
     #controls-section {{
         border: solid {colors['accent']};
-        padding: 0;
+        padding: 0 1;
         height: 3;
         background: $surface;
     }}
     
+    #controls-content {{
+        layout: horizontal;
+        align: center middle;
+        width: 100%;
+        height: 100%;
+    }}
+    
+    #system-info-label {{
+        width: 2fr;
+        text-align: left;
+        color: $text;
+        padding: 0 1;
+    }}
+    
     #controls-buttons {{
-        align: left middle;
+        width: 1fr;
+        layout: horizontal;
+        align: right middle;
+        height: 100%;
     }}
     
     #timestamp-label {{
-        width: 1fr;
-        text-align: left;
-        color: {colors['accent']};
+        width: auto;
+        text-align: right;
+        color: $text;
+        padding: 0 1;
     }}
     
     Button {{
         margin: 0 1;
         min-width: 12;
         height: 1;
+        background: {colors['accent']};
+        color: white;
+        text-style: bold;
         border: none;
-        text-align: center;
+    }}
+    
+    Button:hover {{
+        background: {colors['primary']};
+        color: white;
+    }}
+    
+    Button:focus {{
+        text-style: bold reverse;
     }}
     
     Label {{
-        color: {colors['primary']};
+        color: $text;
         margin: 0;
         padding: 0;
     }}
     
-    #usage-title, #power-title, #controls-title {{
+    #controls-title {{
         text-style: bold;
         margin: 0;
         padding: 0;
@@ -312,32 +374,34 @@ class FluidTopApp(App):
     def compose(self) -> ComposeResult:
         """Compose the UI layout"""
         
+        # Controls section with power and system info at the top
+        with Vertical(id="controls-section"):
+            with Horizontal(id="controls-content"):
+                # System info on the left
+                yield Label("Initializing...", id="system-info-label")
+                # Timestamp and buttons on the right
+                with Horizontal(id="controls-buttons"):
+                    yield Label("", id="timestamp-label")
+                    yield Button("📸 Screenshot", id="screenshot-btn", variant="primary")
+                    yield Button("❌ Quit", id="quit-btn", variant="error")
+        
         # Usage Charts section
         with Vertical(id="usage-section"):
-            yield Label("Device Info", id="usage-title")
             with Horizontal():
-                yield UsageChart("E-CPU Usage", interval=self.interval, color=self.theme_colors, id="e-cpu-usage-chart")
-                yield UsageChart("P-CPU Usage", interval=self.interval, color=self.theme_colors, id="p-cpu-usage-chart")
+                yield UsageChart("E-CPU", interval=self.interval, color=self.theme_colors, id="e-cpu-usage-chart")
+                yield UsageChart("P-CPU", interval=self.interval, color=self.theme_colors, id="p-cpu-usage-chart")
             with Horizontal():
-                yield UsageChart("GPU Usage", interval=self.interval, color=self.theme_colors, id="gpu-usage-chart")
+                yield UsageChart("GPU", interval=self.interval, color=self.theme_colors, id="gpu-usage-chart")
                 yield UsageChart("RAM Usage", ylabel="RAM (%)", interval=self.interval, color=self.theme_colors, id="ram-usage-chart")
         
         # Power section
         with Vertical(id="power-section"):
-            yield Label("Component Power Charts", id="power-title")
             with Horizontal():
                 yield PowerChart("CPU Power", interval=self.interval, color=self.theme_colors, id="cpu-power-chart")
                 yield PowerChart("GPU Power", interval=self.interval, color=self.theme_colors, id="gpu-power-chart")
             with Horizontal():
                 yield PowerChart("ANE Power", interval=self.interval, color=self.theme_colors, id="ane-power-chart")
                 yield PowerChart("Total Power", interval=self.interval, color=self.theme_colors, id="total-power-chart")
-        
-        # Controls section
-        with Vertical(id="controls-section"):
-            with Horizontal(id="controls-buttons"):
-                yield Label("", id="timestamp-label")
-                yield Button("📸 Screenshot", id="screenshot-btn", variant="primary")
-                yield Button("❌ Quit", id="quit-btn", variant="error")
     
     async def on_mount(self):
         """Initialize the application on mount"""
@@ -353,9 +417,9 @@ class FluidTopApp(App):
         # Start update timer
         self.set_interval(self.interval, self.update_metrics)
         
-        # Update usage title with device info
-        cpu_title = f"{self.soc_info_dict['name']} (cores: {self.soc_info_dict['e_core_count']}E+{self.soc_info_dict['p_core_count']}P+{self.soc_info_dict['gpu_core_count']}GPU)"
-        self.query_one("#usage-title", Label).update(cpu_title)
+        # Update system info label
+        system_info = f"{self.soc_info_dict['name']} ({self.soc_info_dict['e_core_count']}E+{self.soc_info_dict['p_core_count']}P+{self.soc_info_dict['gpu_core_count']}GPU)"
+        self.query_one("#system-info-label", Label).update(system_info)
         
         # Initialize timestamp
         await self.update_timestamp()
@@ -417,7 +481,7 @@ class FluidTopApp(App):
         e_cpu_chart = self.query_one("#e-cpu-usage-chart", UsageChart)
         e_cpu_usage = cpu_metrics_dict['E-Cluster_active']
         e_cpu_freq = cpu_metrics_dict['E-Cluster_freq_Mhz']
-        e_cpu_title = f"E-CPU: {e_cpu_usage}% @ {e_cpu_freq} MHz"
+        e_cpu_title = f"E-CPU ({self.soc_info_dict['e_core_count']} cores): {e_cpu_usage}% @ {e_cpu_freq} MHz"
         e_cpu_chart.update_title(e_cpu_title)
         e_cpu_chart.add_data(e_cpu_usage)
         
@@ -425,7 +489,7 @@ class FluidTopApp(App):
         p_cpu_chart = self.query_one("#p-cpu-usage-chart", UsageChart)
         p_cpu_usage = cpu_metrics_dict['P-Cluster_active']
         p_cpu_freq = cpu_metrics_dict['P-Cluster_freq_Mhz']
-        p_cpu_title = f"P-CPU: {p_cpu_usage}% @ {p_cpu_freq} MHz"
+        p_cpu_title = f"P-CPU ({self.soc_info_dict['p_core_count']} cores): {p_cpu_usage}% @ {p_cpu_freq} MHz"
         p_cpu_chart.update_title(p_cpu_title)
         p_cpu_chart.add_data(p_cpu_usage)
         
@@ -433,7 +497,7 @@ class FluidTopApp(App):
         gpu_chart = self.query_one("#gpu-usage-chart", UsageChart)
         gpu_usage = gpu_metrics_dict['active']
         gpu_freq = gpu_metrics_dict['freq_MHz']
-        gpu_title = f"GPU: {gpu_usage}% @ {gpu_freq} MHz"
+        gpu_title = f"GPU ({self.soc_info_dict['gpu_core_count']} cores): {gpu_usage}% @ {gpu_freq} MHz"
         gpu_chart.update_title(gpu_title)
         gpu_chart.add_data(gpu_usage)
         
@@ -511,11 +575,6 @@ class FluidTopApp(App):
         total_power_percent = int(package_power_W / total_max_power * 100)
         thermal_throttle = "no" if thermal_pressure == "Nominal" else "yes"
         
-        total_title = f"Total: {package_power_W:.2f}W (avg: {avg_package_power:.2f}W | peak: {self.package_peak_power:.2f}W)"
-        total_power_chart.update_title(total_title)
-        total_power_chart.add_data(total_power_percent)
-        
-        # Update power section title
         # Convert total energy from watt-seconds to watt-hours for display
         total_energy_wh = self.total_energy_consumed / 3600  # 3600 seconds = 1 hour
         
@@ -529,8 +588,10 @@ class FluidTopApp(App):
             # Show in kilowatt-hours for large values
             energy_display = f"{total_energy_wh / 1000:.3f}kWh"
         
-        power_title = f"Power: {package_power_W:.2f}W (avg: {avg_package_power:.2f}W | peak: {self.package_peak_power:.2f}W) | total over time: {energy_display} | throttle: {thermal_throttle}"
-        self.query_one("#power-title", Label).update(power_title)
+        # Include all power info in the total power chart title
+        total_title = f"Total: {package_power_W:.2f}W (avg: {avg_package_power:.2f}W | peak: {self.package_peak_power:.2f}W | total: {energy_display} | throttle: {thermal_throttle})"
+        total_power_chart.update_title(total_title)
+        total_power_chart.add_data(total_power_percent)
     
     async def update_timestamp(self):
         """Update the timestamp display"""
