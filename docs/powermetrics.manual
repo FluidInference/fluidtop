@@ -1,0 +1,351 @@
+powermetrics(1)             General Commands Manual            powermetrics(1)
+
+NNAAMMEE
+     ppoowweerrmmeettrriiccss
+
+SSYYNNOOPPSSIISS
+     ppoowweerrmmeettrriiccss [--ii _s_a_m_p_l_e___i_n_t_e_r_v_a_l___m_s] [--rr _o_r_d_e_r] [--tt _w_a_k_e_u_p___c_o_s_t]
+                  [--oo _o_u_t_p_u_t___f_i_l_e] [--nn _s_a_m_p_l_e___c_o_u_n_t]
+
+DDEESSCCRRIIPPTTIIOONN
+     ppoowweerrmmeettrriiccss gathers and display CPU usage statistics (divided into time
+     spent in user mode and supervisor mode), timer and interrupt wakeup
+     frequency (total and, for near-idle workloads, those that resulted in
+     package idle exits), and on supported platforms, interrupt frequencies
+     (categorized by CPU number), package C-state statistics (an indication of
+     the time the core complex + integrated graphics, if any, were in low-
+     power idle states), CPU frequency distribution during the sample. The
+     tool may also display estimated power consumed by various SoC subsystems,
+     such as CPU, GPU, ANE (Apple Neural Engine).  Note: Average power values
+     reported by powermetrics are estimated and may be inaccurate - hence they
+     should not be used for any comparison between devices, but can be used to
+     help optimize apps for energy efficiency.
+
+     --hh, ----hheellpp
+             Print help message.
+
+     --ss _s_a_m_p_l_e_r_s, ----ssaammpplleerrss _s_a_m_p_l_e_r_s
+             Comma separated list of samplers and sampler groups. Run with -h
+             to see a list of samplers and sampler groups. Specifying
+             "default" will display the default set, and specifying "all" will
+             display all supported samplers.
+
+     --oo _f_i_l_e, ----oouuttppuutt--ffiillee _f_i_l_e
+             Output to _f_i_l_e instead of stdout.
+
+     --bb _s_i_z_e, ----bbuuffffeerr--ssiizzee _s_i_z_e
+             Set output buffer _s_i_z_e (0=none, 1=line)
+
+     --ii _N, ----ssaammppllee--rraattee _N
+             sample every _N ms (0=disabled) [default: 5000ms]
+
+     --nn _N, ----ssaammppllee--ccoouunntt _N
+             Obtain _N periodic samples (0=infinite) [default: 0]
+
+     --tt _N, ----wwaakkeeuupp--ccoosstt _N
+             Assume package idle wakeups have a CPU time cost of _N us when
+             using hybrid sort orders using idle wakeups with time-based
+             metrics
+
+     --rr _m_e_t_h_o_d, ----oorrddeerr _m_e_t_h_o_d
+             Order process list using specified _m_e_t_h_o_d [default: composite]
+
+             [pid]
+                   process identifier
+             [wakeups]
+                   total package idle wakeups (alias: -W)
+             [cputime]
+                   total CPU time used (alias: -C)
+             [composite]
+                   energy number, see --show-process-energy (alias: -O)
+
+     --ff _f_o_r_m_a_t, ----ffoorrmmaatt _f_o_r_m_a_t
+             Display data in specified format [default: text]
+
+             [text]
+                   human-readable text output
+             [plist]
+                   machine-readable property list, NUL-separated
+
+     --aa _N, ----ppoowweerraavvgg _N
+             Display poweravg every _N samples (0=disabled) [default: 10]
+
+     ----hhiiddee--ccppuu--dduuttyy--ccyyccllee
+             Hide CPU duty cycle data
+
+     ----sshhooww--iinniittiiaall--uussaaggee
+             Print initial sample for entire uptime
+
+     ----sshhooww--uussaaggee--ssuummmmaarryy
+             Print final usage summary when exiting
+
+     ----sshhooww--ppssttaatteess
+             Show pstate distribution. Only available on certain hardware.
+
+     ----sshhooww--pplliimmiittss
+             Show plimits, forced idle and RMBS. Only available on certain
+             hardware.
+
+     ----sshhooww--ccppuu--qqooss
+             Show per cpu QOS breakdowns.
+
+     ----sshhooww--pprroocceessss--ccooaalliittiioonn
+             Group processes by coalitions and show per coalition information.
+             Processes that have exited during the sample will still have
+             their time billed to the coalition, making this useful for
+             disambiguating DEAD_TASK time.
+
+     ----sshhooww--rreessppoonnssiibbllee--ppiidd
+             Show responsible pid for xpc services and parent pid
+
+     ----sshhooww--pprroocceessss--wwaaiitt--ttiimmeess
+             Show per-process sfi wait time info
+
+     ----sshhooww--pprroocceessss--qqooss--ttiieerrss
+             Show per-process qos latency and throughput tier
+
+     ----sshhooww--pprroocceessss--iioo
+             Show per-process io information
+
+     ----sshhooww--pprroocceessss--ggppuu
+             Show per-process gpu time. This is only available on certain
+             hardware.
+
+     ----sshhooww--pprroocceessss--nneettssttaattss
+             Show per-process network information
+
+     ----sshhooww--pprroocceessss--qqooss
+             Show QOS times aggregated by process. Per thread information is
+             not available.
+
+     ----sshhooww--pprroocceessss--eenneerrggyy
+             Show per-process energy impact number. This number is a rough
+             proxy for the total energy the process uses, including CPU, GPU,
+             disk io and networking. The weighting of each is platform
+             specific. Enabling this implicitly enables sampling of all the
+             above per-process statistics.
+
+     ----sshhooww--pprroocceessss--ssaammpp--nnoorrmm
+             Show CPU time normailzed by the sample window, rather than the
+             process start time. For example a process that launched 1 second
+             before the end of a 5 second sample window and ran continuously
+             until the end of the window will show up as 200 ms/s here and
+             1000 ms/s in the regular column.
+
+     ----sshhooww--pprroocceessss--iippcc
+             Show per-process Instructions and cycles on ARM machines. Use
+             with --show-process-amp to show cluster stats.
+
+     ----sshhooww--aallll
+             Enables all samplers and displays all the available information
+             for each sampler.
+
+     This tool also implements special behavior upon receipt of certain
+     signals to aid with the automated collection of data:
+
+     SIGINFO
+           take an immediate sample
+     SIGIO
+           flush any buffered output
+     SIGINT/SIGTERM/SIGHUP
+           stop sampling and exit
+
+OOUUTTPPUUTT
+     _G_u_i_d_e_l_i_n_e_s _f_o_r _e_n_e_r_g_y _r_e_d_u_c_t_i_o_n
+
+     CPU time, deadlines and interrupt wakeups: Lower is better
+
+     Interrupt counts: Lower is better
+
+     C-state residency: Higher is better
+
+     _R_u_n_n_i_n_g _T_a_s_k_s
+
+     1. CPU time consumed by threads assigned to that process, broken down
+     into time spent in user space and kernel mode.
+
+     2. Counts of "short" timers (where the time-to-deadline was < 5
+     milliseconds in the future at the point of timer creation) which woke up
+     threads from that process. High frequency timers, which typically have
+     short time-to-deadlines, can result in significant energy consumption.
+
+     3. A count of total interrupt level wakeups which resulted in dispatching
+     a thread from the process in question. For example, if a thread were
+     blocked in a usleep() system call, a timer interrupt would cause that
+     thread to be dispatched, and would increment this counter. For workloads
+     with a significant idle component, this metric is useful to study in
+     conjunction with the package idle exit metric reported below.
+
+     4. A count of "package idle exits" induced by timers/device interrupts
+     which awakened threads from the process in question. This is a subset of
+     the interrupt wakeup count. Timers and other interrupts that trigger
+     "package idle exits" have a greater impact on energy consumption relative
+     to other interrupts. With the exception of some Mac Pro systems, Mac and
+     iOS systems are typically single package systems, wherein all CPUs are
+     part of a single processor complex (typically a single IC die) with
+     shared logic that can include (depending on system specifics) shared last
+     level caches, an integrated memory controller etc. When all CPUs in the
+     package are idle, the hardware can power-gate significant portions of the
+     shared logic in addition to each individual processor's logic, as well as
+     take measures such as placing DRAM in to self-refresh (also referred to
+     as auto-refresh), place interconnects into lower-power states etc. Hence
+     a timer or interrupt that triggers an exit from this package idle state
+     results in a a greater increase in power than a timer that occurred when
+     the CPU in question was already executing. The process initiating a
+     package idle wakeup may also be the "prime mover", i.e. it may be the
+     trigger for further activity in its own or other processes. This metric
+     is most useful when the system is relatively idle, as with typical light
+     workloads such as web browsing and movie playback; with heavier
+     workloads, the CPU activity can be high enough such that package idle
+     entry is relatively rare, thus masking package idle exits due to the
+     process/thread in question.
+
+     5. If any processes arrived and vanished during the inter-sample
+     interval, or a previously sampled process vanished, their statistics are
+     reflected in the row labeled "DEAD_TASKS". This can identify issues
+     involving transient processes which may be spawned too frequently. dtrace
+     ("execsnoop") or other tools can then be used to identify the transient
+     processes in question. Running powermetrics in coalition mode, (see
+     below), will also help track down transient process issues, by billing
+     the coalition to which the process belongs.
+
+     _I_n_t_e_r_r_u_p_t _D_i_s_t_r_i_b_u_t_i_o_n
+
+     The interrupts sampler reports interrupt frequencies, classified by
+     interrupt vector and associated device, on a per-CPU basis. Mac OS
+     currently assigns all device interrupts to CPU0, but timers and
+     interprocessor interrupts can occur on other CPUs. Interrupt frequencies
+     can be useful in identifying misconfigured devices or areas of
+     improvement in interrupt load, and can serve as a proxy for identifying
+     device activity across the sample interval. For example, during a
+     network-heavy workload, an increase in interrupts associated with Airport
+     wireless ("ARPT"), or wired ethernet ("ETH0" "ETH1" etc.) is not
+     unexpected. However, if the interrupt frequency for a given device is
+     non-zero when the device is not active (e.g. if "HDAU" interrupts, for
+     High Definition Audio, occur even when no audio is playing), that may be
+     a driver error. The int_sources sampler attributes interrupts to the
+     responsible InterruptEventSources, which helps disambiguate the cause of
+     an interrupt if the vector serves more than one source.
+
+     _B_a_t_t_e_r_y _S_t_a_t_i_s_t_i_c_s
+
+     The battery sampler reports battery discharge rates, current and maximum
+     charge levels, cycle counts and degradation from design capacity across
+     the interval in question, if a delta was reported by the battery
+     management unit. Note that the battery controller data may arrive out-of-
+     phase with respect to powermetrics samples, which can cause aliasing
+     issues across short sample intervals. Discharge rates across
+     discontinuities such as sleep/wake may also be inaccurate on some
+     systems; however, the rate of change of the total charge level across
+     longer intervals is a useful indicator of total system load. Powermetrics
+     does not filter discharge rates for A/C connect/disconnect events, system
+     sleep residency etc. Battery discharge rates are typically not comparable
+     across machine models.
+
+     _P_r_o_c_e_s_s_o_r _E_n_e_r_g_y _U_s_a_g_e
+
+     The cpu_power sampler reports data derived from the Intel energy models;
+     as of the Sandy Bridge intel microarchitecture, the Intel power control
+     unit internally maintains an energy consumption model whose details are
+     proprietary, but are likely based on duty cycles for individual execution
+     units, current voltage/frequency etc. These numbers are not strictly
+     accurate but are correlated with actual energy consumption. This section
+     lists: power dissipated by the processor package which includes the CPU
+     cores, the integrated GPU and the system agent (integrated memory
+     controller, last level cache), and separately, CPU core power and GT
+     (integrated GPU) power (the latter two in a forthcoming version). The
+     energy model data is generally not comparable across machine models.
+
+     The cpu_power sampler next reports, on processors with Nehalem and newer
+     microarchitectures, hardware derived processor frequency and idle
+     residency information, labeled "P-states" and "C-states" respectively in
+     Intel terminology.
+
+     C-states are further classified in to "package c-states" and per-core C-
+     states. The processor enters a "c-state" in the scheduler's idle loop,
+     which results in clock-gating or power-gating CPU core and, potentially,
+     package logic, considerably reducing power dissipation. High package c-
+     state residency is a goal to strive for, as energy consumption of the CPU
+     complex, integrated memory controller if any and DRAM is significantly
+     reduced when in a package c-state. Package c-states occur when all CPU
+     cores within the package are idle, and the on-die integrated GPU if any
+     (SandyBridge mobile and beyond), on the system is also idle. Powermetrics
+     reports package c-state residency as a fraction of the time sampled. This
+     is available on Nehalem microarchitecture and newer processors. Note that
+     some systems, such as Mac Pros, do not enable "package" c-states.
+
+     Powermetrics also reports per-core c-state residencies, signifying when
+     the core in question (which can include multiple SMTs or "hyperthreads")
+     is idle, as well as active/inactive duty cycle histograms for each
+     logical processor within the core. This is available on Nehalem
+     microarchitecture and newer processors.
+
+     This section also lists the average clock frequency at which the given
+     logical processor executed when not idle within the sampled interval,
+     expressed as both an absolute frequency in MHz and as a percentage of the
+     nominal rated frequency. These average frequencies can vary due to the
+     operating system's demand based dynamic voltage and frequency scaling.
+     Some systems can execute at frequencies greater than the nominal or "P1"
+     frequency, which is termed "turbo mode" on Intel systems. Such operation
+     will manifest as > 100% of nominal frequency. Lengthy execution in turbo
+     mode is typically energy inefficient, as those frequencies have high
+     voltage requirements, resulting in a correspondingly quadratic increase
+     in power insufficient to outweigh the reduction in execution time.
+     Current systems typically have a single voltage/frequency domain per-
+     package, but as the processors can execute out-of-phase, they may display
+     different average execution frequencies.
+
+     _D_i_s_k _U_s_a_g_e _a_n_d _N_e_t_w_o_r_k _A_c_t_i_v_i_t_y
+
+     The network and disk samplers reports deltas in disk and network activity
+     that occured during the sample. Also specifying --show-process-netstats
+     and --show-process-io will give you this information on a per process
+     basis in the tasks sampler.
+
+     _B_a_c_k_l_i_g_h_t _l_e_v_e_l
+
+     The battery sampler also reports the instantaneous value of the backlight
+     luminosity level. This value is likely not comparable across systems and
+     machine models, but can be useful when comparing scenarios on a given
+     system.
+
+     _D_e_v_i_c_e_s
+
+     The devices sampler, for each device, reports the time spent in each of
+     the device's states over the course of the sample. The meaning of the
+     different states is specific to each device. Powermetrics denotes low
+     power states with an "L", device usable states with a "U" and power on
+     states with an "O".
+
+     _S_M_C
+
+     The smc sampler displays information supplied by the System Management
+     Controller. On supported platforms, this includes fan speed and
+     information from various temperature sensors. These are instantaneous
+     values taken at the end of the sample window, and do not necessarily
+     reflect the values at other times in the window.
+
+     _T_h_e_r_m_a_l
+
+     The thermal sampler displays the current thermal pressure the system is
+     under. This is an instantaneous value taken at the end of the sample
+     window, and does not necessarily reflect the value at other times in the
+     window.
+
+     _S_F_I
+
+     The sfi sampler shows system wide selective forced idle statistics.
+     Selective forced idle is a mechanism the operating system uses to limit
+     system power while minimizing user impact, by throttling certain threads
+     on the system. Each thread belongs to an SFI class, and this sampler
+     displays how much each SFI class is currently being throttled or empty if
+     none of them is throttled. These are instantaneous values taken at the
+     end of the sample window, and do not necessarily reflect the values at
+     other times in the window. To get SFI wait time statistics on a per
+     process basis use --show-process-wait-times.
+
+KKNNOOWWNN IISSSSUUEESS
+     Changes in system time and sleep/wake can cause minor inaccuracies in
+     reported cpu time.
+
+Darwin                              5/1/12                              Darwin
