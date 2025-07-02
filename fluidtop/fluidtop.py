@@ -220,7 +220,7 @@ class MultiLineChart(PlotextPlot):
         # Set Y-axis decimal precision
         self.plt.yfrequency(0)  # This will auto-determine the frequency
     
-    def add_data(self, series_name: str, value: float, y_axis: str = "left", color: str = None):
+    def add_data(self, series_name: str, value: float, y_axis: str = "left", color: str | None = None):
         """Add data point to a specific series"""
         current_time = time.time()
         
@@ -438,14 +438,14 @@ class FluidTopApp(App):
     #usage-section {{
         border: solid {colors['primary']};
         padding: 0;
-        height: 2fr;
+        height: 1.5fr;
         background: $surface;
     }}
     
     #power-section {{
         border: solid {colors['primary']};
         padding: 0;
-        height: 2fr;
+        height: 2.5fr;
         background: $surface;
     }}
     
