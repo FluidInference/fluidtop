@@ -74,11 +74,11 @@ class PowerChart(PlotextPlot):
             # Use RGB color for plotting
             self.plt.plot(time_diffs, list(self.data_points), marker="braille", color=self.plot_color)
             
-            # Set y-axis ticks with one decimal
-            y_min = min(self.data_points)
+            # Set y-axis ticks with one decimal, starting from 0
+            y_min = 0  # Always start from 0
             y_max = max(self.data_points)
-            if y_max - y_min > 0.1:
-                # Create 5 evenly spaced y-ticks
+            if y_max > 0:
+                # Create 5 evenly spaced y-ticks starting from 0
                 y_ticks = []
                 y_labels = []
                 for i in range(5):
@@ -86,6 +86,8 @@ class PowerChart(PlotextPlot):
                     y_ticks.append(val)
                     y_labels.append(f"{val:.1f}")
                 self.plt.yticks(y_ticks, y_labels)
+                # Set y-axis limits to ensure it starts at 0
+                self.plt.ylim(0, y_max * 1.1)  # Add 10% padding at the top
             
             # Set x-axis labels - show actual time values
             if len(time_diffs) >= 5:
@@ -185,6 +187,7 @@ class FluidTopApp(App):
         self.theme_colors = self._get_theme_colors(theme_value)
         # Apply theme BEFORE calling super().__init__()
         self._apply_theme(theme_value)
+        
         super().__init__()
         
         # Store theme value in a regular instance variable (not reactive)
@@ -521,11 +524,11 @@ class FluidTopApp(App):
         gpu_max_power = self.soc_info_dict["gpu_max_power"]
         ane_max_power = 8.0
         
-        # Calculate power values
-        package_power_W = cpu_metrics_dict["package_W"] / self.interval
-        cpu_power_W = cpu_metrics_dict["cpu_W"] / self.interval
-        gpu_power_W = cpu_metrics_dict["gpu_W"] / self.interval
-        ane_power_W = cpu_metrics_dict["ane_W"] / self.interval
+        # Calculate power values (already in watts from powermetrics)
+        package_power_W = cpu_metrics_dict["package_W"]
+        cpu_power_W = cpu_metrics_dict["cpu_W"]
+        gpu_power_W = cpu_metrics_dict["gpu_W"]
+        ane_power_W = cpu_metrics_dict["ane_W"]
         
         # Update peak tracking
         if package_power_W > self.package_peak_power:

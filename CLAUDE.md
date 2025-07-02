@@ -168,6 +168,7 @@ twine upload dist/*
 - **UsageChart**: Custom plotting widget for usage percentage data (CPU, GPU, RAM)
 - **FluidTopApp**: Main Textual application class with async update loops
 - **Sections**: UI organized into processor, memory, usage charts, and power charts sections
+- **Screenshot**: Saves terminal display as SVG to ~/fluidtop_screenshots directory
 
 ## Terminal Compatibility
 
