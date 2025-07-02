@@ -59,20 +59,20 @@ sudo fluidtop
 * **Real-time CPU monitoring** - Individual core utilization and frequency tracking
 * **GPU performance tracking** - Apple GPU usage, memory, and power consumption  
 * **Neural Engine (ANE) monitoring** - AI/ML workload detection and utilization
-* **Memory bandwidth monitoring** - RAM, swap, and high-bandwidth memory tracking
+* **Memory usage monitoring** - RAM and swap memory tracking
 * **Power consumption analysis** - CPU/GPU power draw with thermal throttling detection
 * **Temperature monitoring** - System thermal state and throttling alerts
 
 ### Apple Silicon Support
 * **Complete Apple Silicon coverage** - M1, M2, M3, M4, and future chip support
 * **Optimized for modern terminals** - Enhanced Ghostty compatibility and performance
-* **Hardware-specific metrics** - TDP and bandwidth specifications for all variants
+* **Hardware-specific metrics** - TDP specifications for all variants
 * **Individual core monitoring** - Detailed per-core performance and efficiency tracking
 
 ### AI & Machine Learning Focus
 * **AI workload detection** - Specialized monitoring for machine learning tasks
 * **Neural Engine utilization** - Track AI inference and training workloads
-* **Memory bandwidth optimization** - Critical for large model performance
+* **Memory usage optimization** - Critical for large model performance
 * **Future ML framework integration** - Planned support for popular AI libraries
 
 ### Development Installation
@@ -127,7 +127,9 @@ FluidTop leverages macOS's built-in [`powermetrics`](https://www.unix.com/man-pa
 * **Power Consumption:** Hardware energy counters and thermal state monitoring
 * **Memory Statistics:** [`psutil`](https://github.com/giampaolo/psutil) virtual memory and swap tracking
 * **System Information:** `sysctl` CPU details and `system_profiler` GPU specifications
-* **Hardware Database:** Built-in TDP and bandwidth specifications for all Apple Silicon variants
+* **Hardware Database:** Built-in TDP specifications for all Apple Silicon variants
+
+**Note**: Bandwidth monitoring was removed as macOS 13 deprecated bandwidth support in powermetrics.
 
 ### System Requirements
 

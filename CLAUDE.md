@@ -20,19 +20,21 @@ fluidtop is a Python-based performance monitoring CLI tool for Apple Silicon Mac
 ### Key Architecture Patterns
 
 - **Data Collection Pipeline**: `powermetrics` subprocess → plist parsing → metric extraction → UI display
-- **Hardware Detection**: Dynamic SoC identification (M1, M1 Pro/Max/Ultra, M2) with hardcoded TDP/bandwidth values
+- **Hardware Detection**: Dynamic SoC identification (M1, M1 Pro/Max/Ultra, M2) with hardcoded TDP values
 - **Real-time Display**: Terminal UI using `textual` library with gauges and charts
 - **Temporary File Management**: Uses `/tmp/fluidtop_powermetrics*` files for data exchange
 
 ### Hardware Support Matrix
 
-The application includes hardcoded specifications for different Apple Silicon variants:
-- **M1**: 20W CPU/GPU, 70 GB/s bandwidth
-- **M1 Pro**: 30W CPU, 30W GPU, 200 GB/s bandwidth  
-- **M1 Max**: 30W CPU, 60W GPU, 250/400 GB/s bandwidth
-- **M1 Ultra**: 60W CPU, 120W GPU, 500/800 GB/s bandwidth
-- **M2**: 25W CPU, 15W GPU, 100 GB/s bandwidth
+The application includes hardcoded power specifications for different Apple Silicon variants:
+- **M1**: 20W CPU/GPU
+- **M1 Pro**: 30W CPU, 30W GPU
+- **M1 Max**: 30W CPU, 60W GPU
+- **M1 Ultra**: 60W CPU, 120W GPU
+- **M2**: 25W CPU, 15W GPU
 - **M3/M4+**: Dynamic detection with fallback to M2 specifications
+
+**Note**: Bandwidth monitoring was removed as macOS 13 deprecated bandwidth support in powermetrics.
 
 ## Development Commands
 
@@ -160,7 +162,7 @@ twine upload dist/*
 - No test suite present in codebase
 - Dependencies defined in both pyproject.toml and setup.py for compatibility
 - Uses plist format for powermetrics data exchange
-- Bandwidth monitoring code exists but is disabled (commented out)
+- Bandwidth monitoring code removed (macOS 13 deprecated bandwidth support in powermetrics)
 - Modern packaging with pyproject.toml supports uv and other modern Python tools
 
 ### UI Components

@@ -327,19 +327,13 @@ class FluidTopApp(App):
         self.max_count = max_count
         
         # Initialize metrics storage
-        self.avg_package_power_list = deque([], maxlen=int(avg / interval))
-        self.avg_cpu_power_list = deque([], maxlen=int(avg / interval))
-        self.avg_gpu_power_list = deque([], maxlen=int(avg / interval))
-        self.avg_ane_power_list = deque([], maxlen=int(avg / interval))
+        # No longer tracking averages or peaks
         
-        # Peak power tracking
-        self.cpu_peak_power = 0
-        self.gpu_peak_power = 0
-        self.ane_peak_power = 0
-        self.package_peak_power = 0
-        
-        # Total energy consumption tracking (in watt-seconds)
+        # Total energy consumption tracking (in watt-seconds) for each component
         self.total_energy_consumed = 0
+        self.cpu_energy_consumed = 0
+        self.gpu_energy_consumed = 0
+        self.ane_energy_consumed = 0
         
         # Powermetrics process
         self.powermetrics_process = None
@@ -447,6 +441,14 @@ class FluidTopApp(App):
         padding: 0;
         height: 2.5fr;
         background: $surface;
+    }}
+    
+    #power-section Horizontal {{
+        margin-bottom: 1;
+    }}
+    
+    #power-section Horizontal:last-child {{
+        margin-bottom: 0;
     }}
     
     #controls-section {{
@@ -594,7 +596,7 @@ class FluidTopApp(App):
             if not ready:
                 return
                 
-            cpu_metrics_dict, gpu_metrics_dict, thermal_pressure, bandwidth_metrics, timestamp = ready
+            cpu_metrics_dict, gpu_metrics_dict, thermal_pressure, _, timestamp = ready
             
             if timestamp <= self.last_timestamp:
                 return
@@ -671,46 +673,41 @@ class FluidTopApp(App):
         gpu_power_W = cpu_metrics_dict["gpu_W"]
         ane_power_W = cpu_metrics_dict["ane_W"]
         
-        # Update peak tracking
-        if package_power_W > self.package_peak_power:
-            self.package_peak_power = package_power_W
-        if cpu_power_W > self.cpu_peak_power:
-            self.cpu_peak_power = cpu_power_W
-        if gpu_power_W > self.gpu_peak_power:
-            self.gpu_peak_power = gpu_power_W
-        if ane_power_W > self.ane_peak_power:
-            self.ane_peak_power = ane_power_W
-        
-        # Update averages
-        self.avg_package_power_list.append(package_power_W)
-        self.avg_cpu_power_list.append(cpu_power_W)
-        self.avg_gpu_power_list.append(gpu_power_W)
-        self.avg_ane_power_list.append(ane_power_W)
-        
-        # Update total energy consumption (watts * seconds = watt-seconds)
+        # Update energy consumption for each component (watts * seconds = watt-seconds)
         self.total_energy_consumed += package_power_W * self.interval
+        self.cpu_energy_consumed += cpu_power_W * self.interval
+        self.gpu_energy_consumed += gpu_power_W * self.interval
+        self.ane_energy_consumed += ane_power_W * self.interval
         
-        avg_package_power = sum(self.avg_package_power_list) / len(self.avg_package_power_list)
-        avg_cpu_power = sum(self.avg_cpu_power_list) / len(self.avg_cpu_power_list)
-        avg_gpu_power = sum(self.avg_gpu_power_list) / len(self.avg_gpu_power_list)
-        avg_ane_power = sum(self.avg_ane_power_list) / len(self.avg_ane_power_list)
+        # Helper function to format energy display
+        def format_energy(energy_ws):
+            energy_wh = energy_ws / 3600  # Convert watt-seconds to watt-hours
+            if energy_wh < 1.0:
+                return f"{energy_wh * 1000:.1f}mWh"
+            elif energy_wh < 1000:
+                return f"{energy_wh:.2f}Wh"
+            else:
+                return f"{energy_wh / 1000:.3f}kWh"
         
         # Update charts
         cpu_power_chart = self.query_one("#cpu-power-chart", PowerChart)
         cpu_power_percent = int(cpu_power_W / cpu_max_power * 100)
-        cpu_title = f"CPU: {cpu_power_W:.2f}W (avg: {avg_cpu_power:.2f}W | peak: {self.cpu_peak_power:.2f}W)"
+        cpu_energy_display = format_energy(self.cpu_energy_consumed)
+        cpu_title = f"CPU: {cpu_power_W:.2f}W (total: {cpu_energy_display})"
         cpu_power_chart.update_title(cpu_title)
         cpu_power_chart.add_data(cpu_power_percent)
         
         gpu_power_chart = self.query_one("#gpu-power-chart", PowerChart)
         gpu_power_percent = int(gpu_power_W / gpu_max_power * 100)
-        gpu_title = f"GPU: {gpu_power_W:.2f}W (avg: {avg_gpu_power:.2f}W | peak: {self.gpu_peak_power:.2f}W)"
+        gpu_energy_display = format_energy(self.gpu_energy_consumed)
+        gpu_title = f"GPU: {gpu_power_W:.2f}W (total: {gpu_energy_display})"
         gpu_power_chart.update_title(gpu_title)
         gpu_power_chart.add_data(gpu_power_percent)
         
         ane_power_chart = self.query_one("#ane-power-chart", PowerChart)
         ane_power_percent = int(ane_power_W / ane_max_power * 100)
-        ane_title = f"ANE: {ane_power_W:.2f}W (avg: {avg_ane_power:.2f}W | peak: {self.ane_peak_power:.2f}W)"
+        ane_energy_display = format_energy(self.ane_energy_consumed)
+        ane_title = f"ANE: {ane_power_W:.2f}W (total: {ane_energy_display})"
         ane_power_chart.update_title(ane_title)
         ane_power_chart.add_data(ane_power_percent)
         
@@ -719,21 +716,11 @@ class FluidTopApp(App):
         total_power_percent = int(package_power_W / total_max_power * 100)
         thermal_throttle = "no" if thermal_pressure == "Nominal" else "yes"
         
-        # Convert total energy from watt-seconds to watt-hours for display
-        total_energy_wh = self.total_energy_consumed / 3600  # 3600 seconds = 1 hour
-        
-        if total_energy_wh < 1.0:
-            # Show in milliwatt-hours for very small values
-            energy_display = f"{total_energy_wh * 1000:.1f}mWh"
-        elif total_energy_wh < 1000:
-            # Show in watt-hours for normal values
-            energy_display = f"{total_energy_wh:.2f}Wh"
-        else:
-            # Show in kilowatt-hours for large values
-            energy_display = f"{total_energy_wh / 1000:.3f}kWh"
+        # Format total energy
+        total_energy_display = format_energy(self.total_energy_consumed)
         
         # Include all power info in the total power chart title
-        total_title = f"Total: {package_power_W:.2f}W (avg: {avg_package_power:.2f}W | peak: {self.package_peak_power:.2f}W | total: {energy_display} | throttle: {thermal_throttle})"
+        total_title = f"Total: {package_power_W:.2f}W (total: {total_energy_display} | throttle: {thermal_throttle})"
         total_power_chart.update_title(total_title)
         total_power_chart.add_data(total_power_percent)
     

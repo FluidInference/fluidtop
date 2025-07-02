@@ -17,7 +17,6 @@ def parse_powermetrics(path='/tmp/fluidtop_powermetrics', timecode="0"):
         thermal_pressure = parse_thermal_pressure(powermetrics_parse)
         cpu_metrics_dict = parse_cpu_metrics(powermetrics_parse)
         gpu_metrics_dict = parse_gpu_metrics(powermetrics_parse)
-        #bandwidth_metrics = parse_bandwidth_metrics(powermetrics_parse)
         bandwidth_metrics = None
         timestamp = powermetrics_parse["timestamp"]
         return cpu_metrics_dict, gpu_metrics_dict, thermal_pressure, bandwidth_metrics, timestamp
@@ -28,7 +27,6 @@ def parse_powermetrics(path='/tmp/fluidtop_powermetrics', timecode="0"):
                 thermal_pressure = parse_thermal_pressure(powermetrics_parse)
                 cpu_metrics_dict = parse_cpu_metrics(powermetrics_parse)
                 gpu_metrics_dict = parse_gpu_metrics(powermetrics_parse)
-                #bandwidth_metrics = parse_bandwidth_metrics(powermetrics_parse)
                 bandwidth_metrics = None
                 timestamp = powermetrics_parse["timestamp"]
                 return cpu_metrics_dict, gpu_metrics_dict, thermal_pressure, bandwidth_metrics, timestamp
@@ -141,8 +139,6 @@ def get_soc_info():
         "core_count": int(cpu_info_dict["machdep.cpu.core_count"]),
         "cpu_max_power": None,
         "gpu_max_power": None,
-        "cpu_max_bw": None,
-        "gpu_max_bw": None,
         "e_core_count": e_core_count,
         "p_core_count": p_core_count,
         "gpu_core_count": get_gpu_cores()
@@ -199,56 +195,4 @@ def get_soc_info():
     else:
         soc_info["cpu_max_power"] = 20
         soc_info["gpu_max_power"] = 20
-    # bandwidth
-    if soc_info["name"] == "Apple M1 Max":
-        soc_info["cpu_max_bw"] = 250
-        soc_info["gpu_max_bw"] = 400
-    elif soc_info["name"] == "Apple M1 Pro":
-        soc_info["cpu_max_bw"] = 200
-        soc_info["gpu_max_bw"] = 200
-    elif soc_info["name"] == "Apple M1":
-        soc_info["cpu_max_bw"] = 70
-        soc_info["gpu_max_bw"] = 70
-    elif soc_info["name"] == "Apple M1 Ultra":
-        soc_info["cpu_max_bw"] = 500
-        soc_info["gpu_max_bw"] = 800
-    elif soc_info["name"] == "Apple M2":
-        soc_info["cpu_max_bw"] = 100
-        soc_info["gpu_max_bw"] = 100
-    elif soc_info["name"] == "Apple M2 Pro":
-        soc_info["cpu_max_bw"] = 200
-        soc_info["gpu_max_bw"] = 200
-    elif soc_info["name"] == "Apple M2 Max":
-        soc_info["cpu_max_bw"] = 400
-        soc_info["gpu_max_bw"] = 400
-    elif soc_info["name"] == "Apple M2 Ultra":
-        soc_info["cpu_max_bw"] = 800
-        soc_info["gpu_max_bw"] = 800
-    elif soc_info["name"] == "Apple M3":
-        soc_info["cpu_max_bw"] = 100
-        soc_info["gpu_max_bw"] = 100
-    elif soc_info["name"] == "Apple M3 Pro":
-        soc_info["cpu_max_bw"] = 150
-        soc_info["gpu_max_bw"] = 150
-    elif soc_info["name"] == "Apple M3 Max":
-        soc_info["cpu_max_bw"] = 400
-        soc_info["gpu_max_bw"] = 400
-    elif soc_info["name"] == "Apple M3 Ultra":
-        soc_info["cpu_max_bw"] = 800
-        soc_info["gpu_max_bw"] = 800
-    elif soc_info["name"] == "Apple M4":
-        soc_info["cpu_max_bw"] = 120
-        soc_info["gpu_max_bw"] = 120
-    elif soc_info["name"] == "Apple M4 Pro":
-        soc_info["cpu_max_bw"] = 273
-        soc_info["gpu_max_bw"] = 273
-    elif soc_info["name"] == "Apple M4 Max":
-        soc_info["cpu_max_bw"] = 546
-        soc_info["gpu_max_bw"] = 546
-    elif soc_info["name"] == "Apple M4 Ultra":
-        soc_info["cpu_max_bw"] = 1092
-        soc_info["gpu_max_bw"] = 1092
-    else:
-        soc_info["cpu_max_bw"] = 70
-        soc_info["gpu_max_bw"] = 70
     return soc_info

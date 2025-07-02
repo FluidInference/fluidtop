@@ -56,7 +56,7 @@ FluidTop provides more detailed real-time hardware metrics than Activity Monitor
 - Individual CPU core utilization (P-cores vs E-cores)
 - Real-time power consumption with averaging
 - Neural Engine utilization tracking
-- Memory bandwidth monitoring
+- Memory usage monitoring
 - Terminal-based interface for remote monitoring
 
 ## Features & Limitations

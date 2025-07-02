@@ -16,7 +16,7 @@ keywords = [
     "m1", "m2", "m3", "m4", "macos", "gpu", "cpu", "ane", "neural-engine",
     "asitop", "nvtop", "htop", "system-monitor", "hardware", "realtime",
     "ai", "ml", "machine-learning", "artificial-intelligence", "workload",
-    "terminal", "cli", "command-line", "powermetrics", "memory", "bandwidth"
+    "terminal", "cli", "command-line", "powermetrics", "memory"
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
