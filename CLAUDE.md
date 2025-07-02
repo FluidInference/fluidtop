@@ -32,6 +32,7 @@ The application includes hardcoded specifications for different Apple Silicon va
 - **M1 Max**: 30W CPU, 60W GPU, 250/400 GB/s bandwidth
 - **M1 Ultra**: 60W CPU, 120W GPU, 500/800 GB/s bandwidth
 - **M2**: 25W CPU, 15W GPU, 100 GB/s bandwidth
+- **M3/M4+**: Dynamic detection with fallback to M2 specifications
 
 ## Development Commands
 
@@ -78,7 +79,7 @@ pip install fluidtop
 sudo uv run fluidtop
 
 # Run with options
-sudo uv run fluidtop --interval 2 --theme green --avg 60 --show_cores true
+sudo uv run fluidtop --interval 2 --color 5 --avg 60 --show_cores
 
 # Alternative: run the module directly
 sudo uv run -m fluidtop.fluidtop
@@ -96,15 +97,15 @@ sudo fluidtop
 fluidtop
 
 # With options
-fluidtop --interval 2 --theme green --avg 60 --show_cores true
+fluidtop --interval 2 --color 5 --avg 60 --show_cores
 ```
 
 ### Available Command Line Options
 - `--interval INTERVAL`: Display and powermetrics sampling interval (seconds, default: 1)
-- `--theme THEME`: Display color theme (default|blue|green|red|purple|orange|cyan|magenta, default: blue)
+- `--color COLOR`: Color theme selection 0-8 (default: 2)
 - `--avg AVG`: Averaging window for power values (seconds, default: 30)
 - `--show_cores`: Enable individual core monitoring display
-- `--max_count`: Restart powermetrics after N samples (for long-running sessions)
+- `--max_count COUNT`: Restart powermetrics after N samples (for long-running sessions)
 
 ### Package Management
 

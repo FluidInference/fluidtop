@@ -196,6 +196,116 @@ class UsageChart(PlotextPlot):
         self.refresh()
 
 
+class MultiLineChart(PlotextPlot):
+    """Custom chart widget for displaying multiple data series on the same chart"""
+    
+    def __init__(self, title: str = "", ylabel: str = "Value", interval: int = 1, color: str = "cyan", **kwargs):
+        super().__init__(**kwargs)
+        self.title = title
+        self.ylabel = ylabel
+        self.interval = interval
+        self.plot_color = color
+        # Store up to 3600 data points (1 hour at 1 second intervals) for each series
+        self.data_series = {}  # Will store {'series_name': {'data': deque, 'timestamps': deque}}
+        self.start_time = time.time()
+        
+    def on_mount(self):
+        self.plt.title(self.title)
+        self.plt.xlabel("Time (minutes ago)")
+        self.plt.ylabel(self.ylabel)
+        # Apply custom colors before setting auto_theme
+        # Set auto_theme to False to prevent overriding custom colors
+        self.auto_theme = False
+        self.plt.plotsize(None, None)  # Auto-size
+        # Set Y-axis decimal precision
+        self.plt.yfrequency(0)  # This will auto-determine the frequency
+    
+    def add_data(self, series_name: str, value: float, y_axis: str = "left", color: str = None):
+        """Add data point to a specific series"""
+        current_time = time.time()
+        
+        # Initialize series if it doesn't exist
+        if series_name not in self.data_series:
+            # Use provided color or default to the chart's color
+            series_color = color if color else self.plot_color
+            self.data_series[series_name] = {
+                'data': deque(maxlen=3600),
+                'timestamps': deque(maxlen=3600),
+                'y_axis': y_axis,
+                'color': series_color
+            }
+        
+        self.data_series[series_name]['data'].append(value)
+        self.data_series[series_name]['timestamps'].append(current_time)
+        
+        self.plt.clear_data()
+        
+        # Determine y-axis range based on all data
+        all_data_left = []
+        all_data_right = []
+        
+        for name, series in self.data_series.items():
+            if series['y_axis'] == 'left':
+                all_data_left.extend(list(series['data']))
+            else:
+                all_data_right.extend(list(series['data']))
+        
+        # Set up left y-axis (usage percentage)
+        if all_data_left:
+            y_min_left = 0
+            y_max_left = max(max(all_data_left), 100)  # At least 100 for percentage
+            y_ticks_left = [0, 25, 50, 75, 100] if y_max_left <= 100 else [0, y_max_left/4, y_max_left/2, 3*y_max_left/4, y_max_left]
+            y_labels_left = [f"{val:.1f}" for val in y_ticks_left]
+            self.plt.yticks(y_ticks_left, y_labels_left)
+            self.plt.ylim(0, y_max_left * 1.1)
+        
+        # Set x-axis to show 0.0 to 0.6 minutes ago by default
+        default_x_ticks = [0.0, -0.1, -0.2, -0.3, -0.4, -0.5, -0.6]
+        default_x_labels = ["0.0", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6"]
+        
+        # Plot all series
+        has_data = False
+        for name, series in self.data_series.items():
+            if len(series['data']) > 1:
+                has_data = True
+                # Calculate time differences from now in minutes
+                time_diffs = [(current_time - t) / 60 for t in series['timestamps']]
+                # Reverse so most recent is on the right
+                time_diffs = [-td for td in time_diffs]
+                
+                # Use series-specific color
+                self.plt.plot(time_diffs, list(series['data']), marker="braille", color=series['color'], label=name)
+        
+        if has_data:
+            # Use the most recent series' timestamps for x-axis
+            most_recent_series = max(self.data_series.values(), key=lambda s: len(s['data']))
+            time_diffs = [(current_time - t) / 60 for t in most_recent_series['timestamps']]
+            time_diffs = [-td for td in time_diffs]
+            
+            # Set x-axis labels - show actual time values
+            if len(time_diffs) >= 5:
+                # Show 5 evenly spaced labels
+                indices = [0, len(time_diffs)//4, len(time_diffs)//2, 3*len(time_diffs)//4, len(time_diffs)-1]
+                ticks = [time_diffs[i] for i in indices]
+                labels = [f"{abs(t):.1f}" for t in ticks]
+                self.plt.xticks(ticks, labels)
+            else:
+                # For fewer points, show all
+                labels = [f"{abs(t):.1f}" for t in time_diffs]
+                self.plt.xticks(time_diffs, labels)
+        else:
+            # No data yet, show default x-axis
+            self.plt.xticks(default_x_ticks, default_x_labels)
+            self.plt.xlim(-0.6, 0)
+        
+        self.refresh()
+    
+    def update_title(self, title: str):
+        self.title = title
+        self.plt.title(title)
+        self.refresh()
+
+
 class FluidTopApp(App):
     """Main FluidTop application using Textual"""
     
@@ -314,6 +424,17 @@ class FluidTopApp(App):
         background: $surface;
     }}
     
+    MultiLineChart {{
+        height: 1fr;
+        margin: 0;
+        border: none;
+        background: $surface;
+    }}
+    
+    MultiLineChart PlotextPlot {{
+        background: $surface;
+    }}
+    
     #usage-section {{
         border: solid {colors['primary']};
         padding: 0;
@@ -412,9 +533,7 @@ class FluidTopApp(App):
         # Usage Charts section
         with Vertical(id="usage-section"):
             with Horizontal():
-                yield UsageChart("E-CPU", interval=self.interval, color=self.theme_colors, id="e-cpu-usage-chart")
-                yield UsageChart("P-CPU", interval=self.interval, color=self.theme_colors, id="p-cpu-usage-chart")
-            with Horizontal():
+                yield MultiLineChart("CPU Usage (E-CPU & P-CPU)", ylabel="Usage (%)", interval=self.interval, color=self.theme_colors, id="cpu-combined-chart")
                 yield UsageChart("GPU", interval=self.interval, color=self.theme_colors, id="gpu-usage-chart")
                 yield UsageChart("RAM Usage", ylabel="RAM (%)", interval=self.interval, color=self.theme_colors, id="ram-usage-chart")
         
@@ -501,21 +620,22 @@ class FluidTopApp(App):
     
     async def update_usage_charts(self, cpu_metrics_dict, gpu_metrics_dict):
         """Update usage chart metrics"""
-        # Update E-CPU usage chart
-        e_cpu_chart = self.query_one("#e-cpu-usage-chart", UsageChart)
+        # Update combined CPU chart (E-CPU and P-CPU)
+        cpu_combined_chart = self.query_one("#cpu-combined-chart", MultiLineChart)
+        
+        # Get E-CPU and P-CPU usage data
         e_cpu_usage = cpu_metrics_dict['E-Cluster_active']
         e_cpu_freq = cpu_metrics_dict['E-Cluster_freq_Mhz']
-        e_cpu_title = f"E-CPU ({self.soc_info_dict['e_core_count']} cores): {e_cpu_usage}% @ {e_cpu_freq} MHz"
-        e_cpu_chart.update_title(e_cpu_title)
-        e_cpu_chart.add_data(e_cpu_usage)
-        
-        # Update P-CPU usage chart
-        p_cpu_chart = self.query_one("#p-cpu-usage-chart", UsageChart)
         p_cpu_usage = cpu_metrics_dict['P-Cluster_active']
         p_cpu_freq = cpu_metrics_dict['P-Cluster_freq_Mhz']
-        p_cpu_title = f"P-CPU ({self.soc_info_dict['p_core_count']} cores): {p_cpu_usage}% @ {p_cpu_freq} MHz"
-        p_cpu_chart.update_title(p_cpu_title)
-        p_cpu_chart.add_data(p_cpu_usage)
+        
+        # Add both CPU types to the same chart with different colors
+        cpu_combined_chart.add_data(f"E-CPU ({self.soc_info_dict['e_core_count']} cores)", e_cpu_usage, y_axis="left", color="blue")
+        cpu_combined_chart.add_data(f"P-CPU ({self.soc_info_dict['p_core_count']} cores)", p_cpu_usage, y_axis="left", color="red")
+        
+        # Update title to show both CPU types
+        combined_title = f"E-CPU: {e_cpu_usage}% @ {e_cpu_freq} MHz | P-CPU: {p_cpu_usage}% @ {p_cpu_freq} MHz"
+        cpu_combined_chart.update_title(combined_title)
         
         # Update GPU usage chart
         gpu_chart = self.query_one("#gpu-usage-chart", UsageChart)
