@@ -616,8 +616,6 @@ class FluidTopApp(App):
             # Handle errors gracefully
             pass
     
-
-    
     async def update_usage_charts(self, cpu_metrics_dict, gpu_metrics_dict):
         """Update usage chart metrics"""
         # Update combined CPU chart (E-CPU and P-CPU)
@@ -625,23 +623,20 @@ class FluidTopApp(App):
         
         # Get E-CPU and P-CPU usage data
         e_cpu_usage = cpu_metrics_dict['E-Cluster_active']
-        e_cpu_freq = cpu_metrics_dict['E-Cluster_freq_Mhz']
         p_cpu_usage = cpu_metrics_dict['P-Cluster_active']
-        p_cpu_freq = cpu_metrics_dict['P-Cluster_freq_Mhz']
         
         # Add both CPU types to the same chart with different colors
         cpu_combined_chart.add_data(f"E-CPU ({self.soc_info_dict['e_core_count']} cores)", e_cpu_usage, y_axis="left", color="blue")
         cpu_combined_chart.add_data(f"P-CPU ({self.soc_info_dict['p_core_count']} cores)", p_cpu_usage, y_axis="left", color="red")
         
         # Update title to show both CPU types
-        combined_title = f"E-CPU: {e_cpu_usage}% @ {e_cpu_freq} MHz | P-CPU: {p_cpu_usage}% @ {p_cpu_freq} MHz"
+        combined_title = f"E-CPU: {e_cpu_usage}% | P-CPU: {p_cpu_usage}%"
         cpu_combined_chart.update_title(combined_title)
         
         # Update GPU usage chart
         gpu_chart = self.query_one("#gpu-usage-chart", UsageChart)
         gpu_usage = gpu_metrics_dict['active']
-        gpu_freq = gpu_metrics_dict['freq_MHz']
-        gpu_title = f"GPU ({self.soc_info_dict['gpu_core_count']} cores): {gpu_usage}% @ {gpu_freq} MHz"
+        gpu_title = f"GPU ({self.soc_info_dict['gpu_core_count']} cores): {gpu_usage}%"
         gpu_chart.update_title(gpu_title)
         gpu_chart.add_data(gpu_usage)
         
