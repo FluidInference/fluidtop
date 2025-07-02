@@ -65,6 +65,29 @@ class PowerChart(PlotextPlot):
         self.timestamps.append(current_time)
         self.plt.clear_data()
         
+        # Always set up axes, even with no data
+        # Set y-axis ticks with one decimal, starting from 0
+        y_min = 0  # Always start from 0
+        if len(self.data_points) > 0:
+            y_max = max(self.data_points) if max(self.data_points) > 0 else 1.0
+        else:
+            y_max = 1.0  # Default max when no data
+            
+        # Create 5 evenly spaced y-ticks starting from 0
+        y_ticks = []
+        y_labels = []
+        for i in range(5):
+            val = y_min + (y_max - y_min) * i / 4
+            y_ticks.append(val)
+            y_labels.append(f"{val:.1f}")
+        self.plt.yticks(y_ticks, y_labels)
+        # Set y-axis limits to ensure it starts at 0
+        self.plt.ylim(0, y_max * 1.1)  # Add 10% padding at the top
+        
+        # Set x-axis to show 0.0 to 0.6 minutes ago by default
+        default_x_ticks = [0.0, -0.1, -0.2, -0.3, -0.4, -0.5, -0.6]
+        default_x_labels = ["0.0", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6"]
+        
         if len(self.data_points) > 1:
             # Calculate time differences from now in minutes
             time_diffs = [(current_time - t) / 60 for t in self.timestamps]
@@ -73,21 +96,6 @@ class PowerChart(PlotextPlot):
             
             # Use RGB color for plotting
             self.plt.plot(time_diffs, list(self.data_points), marker="braille", color=self.plot_color)
-            
-            # Set y-axis ticks with one decimal, starting from 0
-            y_min = 0  # Always start from 0
-            y_max = max(self.data_points)
-            if y_max > 0:
-                # Create 5 evenly spaced y-ticks starting from 0
-                y_ticks = []
-                y_labels = []
-                for i in range(5):
-                    val = y_min + (y_max - y_min) * i / 4
-                    y_ticks.append(val)
-                    y_labels.append(f"{val:.1f}")
-                self.plt.yticks(y_ticks, y_labels)
-                # Set y-axis limits to ensure it starts at 0
-                self.plt.ylim(0, y_max * 1.1)  # Add 10% padding at the top
             
             # Set x-axis labels - show actual time values
             if len(time_diffs) >= 5:
@@ -100,6 +108,10 @@ class PowerChart(PlotextPlot):
                 # For fewer points, show all
                 labels = [f"{abs(t):.1f}" for t in time_diffs]
                 self.plt.xticks(time_diffs, labels)
+        else:
+            # No data yet, show default x-axis
+            self.plt.xticks(default_x_ticks, default_x_labels)
+            self.plt.xlim(-0.6, 0)
         
         self.refresh()
     
@@ -141,6 +153,16 @@ class UsageChart(PlotextPlot):
         self.timestamps.append(current_time)
         self.plt.clear_data()
         
+        # Always set up axes, even with no data
+        # Set y-axis ticks with one decimal for usage (0-100)
+        y_ticks = [0, 25, 50, 75, 100]
+        y_labels = [f"{val:.1f}" for val in y_ticks]
+        self.plt.yticks(y_ticks, y_labels)
+        
+        # Set x-axis to show 0.0 to 0.6 minutes ago by default
+        default_x_ticks = [0.0, -0.1, -0.2, -0.3, -0.4, -0.5, -0.6]
+        default_x_labels = ["0.0", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6"]
+        
         if len(self.data_points) > 1:
             # Calculate time differences from now in minutes
             time_diffs = [(current_time - t) / 60 for t in self.timestamps]
@@ -149,11 +171,6 @@ class UsageChart(PlotextPlot):
             
             # Use RGB color for plotting
             self.plt.plot(time_diffs, list(self.data_points), marker="braille", color=self.plot_color)
-            
-            # Set y-axis ticks with one decimal for usage (0-100)
-            y_ticks = [0, 25, 50, 75, 100]
-            y_labels = [f"{val:.1f}" for val in y_ticks]
-            self.plt.yticks(y_ticks, y_labels)
             
             # Set x-axis labels - show actual time values
             if len(time_diffs) >= 5:
@@ -166,6 +183,10 @@ class UsageChart(PlotextPlot):
                 # For fewer points, show all
                 labels = [f"{abs(t):.1f}" for t in time_diffs]
                 self.plt.xticks(time_diffs, labels)
+        else:
+            # No data yet, show default x-axis
+            self.plt.xticks(default_x_ticks, default_x_labels)
+            self.plt.xlim(-0.6, 0)
         
         self.refresh()
     
