@@ -432,14 +432,14 @@ class FluidTopApp(App):
     #usage-section {{
         border: solid {colors['primary']};
         padding: 0;
-        height: 1.5fr;
+        height: 1fr;
         background: $surface;
     }}
     
     #power-section {{
         border: solid {colors['primary']};
         padding: 0;
-        height: 2.5fr;
+        height: 1fr;
         background: $surface;
     }}
     
@@ -544,9 +544,7 @@ class FluidTopApp(App):
             with Horizontal():
                 yield PowerChart("CPU Power", interval=self.interval, color=self.theme_colors, id="cpu-power-chart")
                 yield PowerChart("GPU Power", interval=self.interval, color=self.theme_colors, id="gpu-power-chart")
-            with Horizontal():
                 yield PowerChart("ANE Power", interval=self.interval, color=self.theme_colors, id="ane-power-chart")
-                yield PowerChart("Total Power", interval=self.interval, color=self.theme_colors, id="total-power-chart")
     
     async def on_mount(self):
         """Initialize the application on mount"""
@@ -711,18 +709,11 @@ class FluidTopApp(App):
         ane_power_chart.update_title(ane_title)
         ane_power_chart.add_data(ane_power_percent)
         
-        total_power_chart = self.query_one("#total-power-chart", PowerChart)
-        total_max_power = cpu_max_power + gpu_max_power + ane_max_power
-        total_power_percent = int(package_power_W / total_max_power * 100)
+        # Update system info label with total power and thermal info
         thermal_throttle = "no" if thermal_pressure == "Nominal" else "yes"
-        
-        # Format total energy
         total_energy_display = format_energy(self.total_energy_consumed)
-        
-        # Include all power info in the total power chart title
-        total_title = f"Total: {package_power_W:.2f}W (total: {total_energy_display} | throttle: {thermal_throttle})"
-        total_power_chart.update_title(total_title)
-        total_power_chart.add_data(total_power_percent)
+        system_info = f"{self.soc_info_dict['name']} ({self.soc_info_dict['e_core_count']}E+{self.soc_info_dict['p_core_count']}P+{self.soc_info_dict['gpu_core_count']}GPU) | Total: {package_power_W:.1f}W ({total_energy_display}) | Throttle: {thermal_throttle}"
+        self.query_one("#system-info-label", Label).update(system_info)
     
     async def update_timestamp(self):
         """Update the timestamp display"""
