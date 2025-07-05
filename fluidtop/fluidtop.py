@@ -47,6 +47,9 @@ class PowerChart(PlotextPlot):
         self.data_points = deque(maxlen=3600)
         self.timestamps = deque(maxlen=3600)
         self.start_time = time.time()
+        # Track min/max values seen across all time
+        self.min_value_seen = None
+        self.max_value_seen = None
         
     def on_mount(self):
         self.plt.title(self.title)
@@ -63,17 +66,36 @@ class PowerChart(PlotextPlot):
         current_time = time.time()
         self.data_points.append(value)
         self.timestamps.append(current_time)
+        
+        # Update min/max values seen
+        if self.min_value_seen is None or value < self.min_value_seen:
+            self.min_value_seen = value
+        if self.max_value_seen is None or value > self.max_value_seen:
+            self.max_value_seen = value
+        
         self.plt.clear_data()
         
         # Always set up axes, even with no data
-        # Set y-axis ticks with one decimal, starting from 0
-        y_min = 0  # Always start from 0
-        if len(self.data_points) > 0:
-            y_max = max(self.data_points) if max(self.data_points) > 0 else 1.0
+        # Use tracked min/max values for scaling
+        if self.min_value_seen is not None and self.max_value_seen is not None:
+            # Ensure a minimum range to avoid flat lines
+            range_size = self.max_value_seen - self.min_value_seen
+            if range_size < 0.5:  # Minimum 0.5% range
+                # Center the range around the midpoint
+                midpoint = (self.min_value_seen + self.max_value_seen) / 2
+                y_min = max(0, midpoint - 0.25)
+                y_max = midpoint + 0.25
+            else:
+                # Add 10% padding on both sides
+                padding = range_size * 0.1
+                y_min = max(0, self.min_value_seen - padding)  # Don't go below 0
+                y_max = self.max_value_seen + padding
         else:
-            y_max = 1.0  # Default max when no data
+            # Default when no data
+            y_min = 0
+            y_max = 1.0
             
-        # Create 5 evenly spaced y-ticks starting from 0
+        # Create 5 evenly spaced y-ticks
         y_ticks = []
         y_labels = []
         for i in range(5):
@@ -81,8 +103,8 @@ class PowerChart(PlotextPlot):
             y_ticks.append(val)
             y_labels.append(f"{val:.1f}")
         self.plt.yticks(y_ticks, y_labels)
-        # Set y-axis limits to ensure it starts at 0
-        self.plt.ylim(0, y_max * 1.1)  # Add 10% padding at the top
+        # Set y-axis limits
+        self.plt.ylim(y_min, y_max)
         
         # Set x-axis to show 0.0 to 0.6 minutes ago by default
         default_x_ticks = [0.0, -0.1, -0.2, -0.3, -0.4, -0.5, -0.6]
@@ -134,6 +156,9 @@ class UsageChart(PlotextPlot):
         self.data_points = deque(maxlen=3600)
         self.timestamps = deque(maxlen=3600)
         self.start_time = time.time()
+        # Track min/max values seen across all time
+        self.min_value_seen = None
+        self.max_value_seen = None
         
     def on_mount(self):
         self.plt.title(self.title)
@@ -151,13 +176,52 @@ class UsageChart(PlotextPlot):
         current_time = time.time()
         self.data_points.append(value)
         self.timestamps.append(current_time)
+        
+        # Update min/max values seen
+        if self.min_value_seen is None or value < self.min_value_seen:
+            self.min_value_seen = value
+        if self.max_value_seen is None or value > self.max_value_seen:
+            self.max_value_seen = value
+        
         self.plt.clear_data()
         
         # Always set up axes, even with no data
-        # Set y-axis ticks with one decimal for usage (0-100)
-        y_ticks = [0, 25, 50, 75, 100]
+        # For usage charts, we'll use dynamic scaling but ensure we can see the full 0-100 range if needed
+        if self.min_value_seen is not None and self.max_value_seen is not None:
+            # If values are spread across a wide range, show full 0-100
+            if self.max_value_seen > 80 or (self.max_value_seen - self.min_value_seen) > 50:
+                # Use traditional 0-100 scale
+                y_min = 0
+                y_max = 100
+                y_ticks = [0, 25, 50, 75, 100]
+            else:
+                # Use dynamic scaling for better visibility of small variations
+                range_size = self.max_value_seen - self.min_value_seen
+                if range_size < 5:  # Minimum 5% range
+                    # Center the range around the midpoint
+                    midpoint = (self.min_value_seen + self.max_value_seen) / 2
+                    y_min = max(0, midpoint - 2.5)
+                    y_max = min(100, midpoint + 2.5)
+                else:
+                    # Add 10% padding on both sides
+                    padding = range_size * 0.1
+                    y_min = max(0, self.min_value_seen - padding)
+                    y_max = min(100, self.max_value_seen + padding)
+                
+                # Create 5 evenly spaced y-ticks
+                y_ticks = []
+                for i in range(5):
+                    val = y_min + (y_max - y_min) * i / 4
+                    y_ticks.append(val)
+        else:
+            # Default when no data
+            y_min = 0
+            y_max = 100
+            y_ticks = [0, 25, 50, 75, 100]
+        
         y_labels = [f"{val:.1f}" for val in y_ticks]
         self.plt.yticks(y_ticks, y_labels)
+        self.plt.ylim(y_min, y_max)
         
         # Set x-axis to show 0.0 to 0.6 minutes ago by default
         default_x_ticks = [0.0, -0.1, -0.2, -0.3, -0.4, -0.5, -0.6]
@@ -675,8 +739,17 @@ class FluidTopApp(App):
         # Helper function to format energy display
         def format_energy(energy_ws):
             energy_wh = energy_ws / 3600  # Convert watt-seconds to watt-hours
-            if energy_wh < 1.0:
-                return f"{energy_wh * 1000:.1f}mWh"
+            energy_mwh = energy_wh * 1000  # Convert to milliwatt-hours
+            
+            if energy_mwh < 0.01:
+                # For very small values, show in scientific notation or as <0.01mWh
+                return "<0.01mWh" if energy_mwh > 0 else "0.00mWh"
+            elif energy_mwh < 10:
+                # For small values, use 2 decimal points
+                return f"{energy_mwh:.2f}mWh"
+            elif energy_wh < 1.0:
+                # For values under 1Wh, use 1 decimal point
+                return f"{energy_mwh:.1f}mWh"
             elif energy_wh < 1000:
                 return f"{energy_wh:.2f}Wh"
             else:
@@ -684,21 +757,21 @@ class FluidTopApp(App):
         
         # Update charts
         cpu_power_chart = self.query_one("#cpu-power-chart", PowerChart)
-        cpu_power_percent = int(cpu_power_W / cpu_max_power * 100)
+        cpu_power_percent = cpu_power_W / cpu_max_power * 100  # Keep as float
         cpu_energy_display = format_energy(self.cpu_energy_consumed)
         cpu_title = f"CPU: {cpu_power_W:.2f}W (total: {cpu_energy_display})"
         cpu_power_chart.update_title(cpu_title)
         cpu_power_chart.add_data(cpu_power_percent)
         
         gpu_power_chart = self.query_one("#gpu-power-chart", PowerChart)
-        gpu_power_percent = int(gpu_power_W / gpu_max_power * 100)
+        gpu_power_percent = gpu_power_W / gpu_max_power * 100  # Keep as float
         gpu_energy_display = format_energy(self.gpu_energy_consumed)
         gpu_title = f"GPU: {gpu_power_W:.2f}W (total: {gpu_energy_display})"
         gpu_power_chart.update_title(gpu_title)
         gpu_power_chart.add_data(gpu_power_percent)
         
         ane_power_chart = self.query_one("#ane-power-chart", PowerChart)
-        ane_power_percent = int(ane_power_W / ane_max_power * 100)
+        ane_power_percent = ane_power_W / ane_max_power * 100  # Keep as float
         ane_energy_display = format_energy(self.ane_energy_consumed)
         ane_title = f"ANE: {ane_power_W:.2f}W (total: {ane_energy_display})"
         ane_power_chart.update_title(ane_title)
