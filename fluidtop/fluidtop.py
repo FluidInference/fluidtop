@@ -593,8 +593,8 @@ class FluidTopApp(App):
                 # Timestamp and buttons on the right
                 with Horizontal(id="controls-buttons"):
                     yield Label("", id="timestamp-label")
-                    yield Button("📸 Screenshot", id="screenshot-btn", variant="primary")
-                    yield Button("❌ Quit", id="quit-btn", variant="error")
+                    yield Button("📸", id="screenshot-btn", variant="primary")
+                    yield Button("❌", id="quit-btn", variant="error")
         
         # Usage Charts section
         with Vertical(id="usage-section"):
