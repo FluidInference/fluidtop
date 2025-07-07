@@ -408,6 +408,11 @@ class FluidTopApp(App):
         # SoC info
         self.soc_info_dict = get_soc_info()
         
+        # Smoothing buffers for CPU usage
+        self.cpu_usage_buffer_size = 5  # Average over last 5 samples
+        self.e_cpu_usage_buffer = []
+        self.p_cpu_usage_buffer = []
+        
     def _get_theme_colors(self, theme: str) -> str:
         """Get the color mapping for the theme using plotext-compatible color names"""
         # Using plotext-compatible color names instead of hex colors
@@ -552,7 +557,7 @@ class FluidTopApp(App):
     
     Button {{
         margin: 0 1;
-        min-width: 12;
+        min-width: 3;
         height: 1;
         background: {colors['accent']};
         color: white;
@@ -686,14 +691,28 @@ class FluidTopApp(App):
         cpu_combined_chart = self.query_one("#cpu-combined-chart", MultiLineChart)
         
         # Get E-CPU and P-CPU usage data
-        e_cpu_usage = cpu_metrics_dict['E-Cluster_active']
-        p_cpu_usage = cpu_metrics_dict['P-Cluster_active']
+        e_cpu_usage_raw = cpu_metrics_dict['E-Cluster_active']
+        p_cpu_usage_raw = cpu_metrics_dict['P-Cluster_active']
+        
+        # Add to smoothing buffers
+        self.e_cpu_usage_buffer.append(e_cpu_usage_raw)
+        self.p_cpu_usage_buffer.append(p_cpu_usage_raw)
+        
+        # Keep buffer size limited
+        if len(self.e_cpu_usage_buffer) > self.cpu_usage_buffer_size:
+            self.e_cpu_usage_buffer.pop(0)
+        if len(self.p_cpu_usage_buffer) > self.cpu_usage_buffer_size:
+            self.p_cpu_usage_buffer.pop(0)
+        
+        # Calculate smoothed values (average of buffer)
+        e_cpu_usage = int(sum(self.e_cpu_usage_buffer) / len(self.e_cpu_usage_buffer))
+        p_cpu_usage = int(sum(self.p_cpu_usage_buffer) / len(self.p_cpu_usage_buffer))
         
         # Add both CPU types to the same chart with different colors
         cpu_combined_chart.add_data(f"E-CPU ({self.soc_info_dict['e_core_count']} cores)", e_cpu_usage, y_axis="left", color="blue")
         cpu_combined_chart.add_data(f"P-CPU ({self.soc_info_dict['p_core_count']} cores)", p_cpu_usage, y_axis="left", color="red")
         
-        # Update title to show both CPU types
+        # Update title to show both CPU types (smoothed values)
         combined_title = f"E-CPU: {e_cpu_usage}% | P-CPU: {p_cpu_usage}%"
         cpu_combined_chart.update_title(combined_title)
         

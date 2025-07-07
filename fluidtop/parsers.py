@@ -14,10 +14,12 @@ def parse_cpu_metrics(powermetrics_parse):
     for cluster in cpu_clusters:
         name = cluster["name"]
         cluster_cpus = cluster["cpus"]
+        # Calculate total active time across all cores instead of averaging
+        # This better matches Activity Monitor's methodology
+        total_active = sum(map(lambda x: 1.0 - x["idle_ratio"], cluster_cpus))
+        # Express as percentage of total cluster capacity (number of cores = 100% each)
         cpu_metric_dict[name+"_active"] = int(
-            100
-            * sum(map(lambda x: 1.0 - x["idle_ratio"], cluster_cpus))
-            / len(cluster_cpus)
+            100 * total_active / len(cluster_cpus)
         )
         for cpu in cluster["cpus"]:
             name = 'E-Cluster' if name[0] == 'E' else 'P-Cluster'
